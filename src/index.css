@@ -8,13 +8,13 @@
   :root {
     /* Core Medical Color Palette */
     --background: 220 30% 98%;
-    --foreground: 215 25% 15%;
+    --foreground: 215 25% 8%;
 
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
+    --card-foreground: 215 25% 8%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
+    --popover-foreground: 215 25% 8%;
 
     /* Medical Primary - Professional Blue */
     --primary: 217 91% 60%;
@@ -23,13 +23,13 @@
 
     /* Medical Secondary - Soft Gray */
     --secondary: 220 13% 91%;
-    --secondary-foreground: 215 25% 15%;
+    --secondary-foreground: 215 25% 8%;
 
     --muted: 220 13% 91%;
-    --muted-foreground: 215 16% 47%;
+    --muted-foreground: 215 16% 25%;
 
     --accent: 220 13% 91%;
-    --accent-foreground: 215 25% 15%;
+    --accent-foreground: 215 25% 8%;
 
     /* Medical Alert Colors */
     --destructive: 0 84% 60%;
