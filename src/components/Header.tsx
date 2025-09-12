@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Bell, User, MapPin, Menu, X, Phone } from 'lucide-react';
 import { Button } from './ui/button';
 import {
@@ -9,22 +9,10 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import { Badge } from './ui/badge';
-import { cn } from '@/lib/utils';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [location, setLocation] = useState('New York, NY');
-  const currentLocation = useLocation();
-
-  const navigation = [
-    { name: 'Home', href: '/' },
-    { name: 'Medicine', href: '/medicine' },
-    { name: 'Hospitals', href: '/hospitals' },
-    { name: 'Doctors', href: '/doctors' },
-    { name: 'AI Assistant', href: '/ai-assistant' },
-  ];
-
-  const isActive = (path: string) => currentLocation.pathname === path;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
@@ -40,23 +28,6 @@ const Header = () => {
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={cn(
-                  'text-sm font-medium transition-colors hover:text-primary',
-                  isActive(item.href)
-                    ? 'text-primary border-b-2 border-primary pb-1'
-                    : 'text-muted-foreground'
-                )}
-              >
-                {item.name}
-              </Link>
-            ))}
-          </nav>
 
           {/* Location and Actions */}
           <div className="flex items-center space-x-3">
@@ -135,21 +106,6 @@ const Header = () => {
         {isMenuOpen && (
           <nav className="mt-4 md:hidden">
             <div className="flex flex-col space-y-2 pb-4">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={cn(
-                    'px-3 py-2 text-sm font-medium rounded-md transition-colors',
-                    isActive(item.href)
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                  )}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              ))}
               <div className="border-t pt-2 mt-2">
                 <Button variant="ghost" size="sm" className="w-full justify-start">
                   <MapPin className="h-4 w-4 mr-2" />
