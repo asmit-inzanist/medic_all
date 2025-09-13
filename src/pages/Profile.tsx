@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   User, 
   Edit, 
@@ -34,6 +35,7 @@ import { toast } from 'sonner';
 
 const Profile = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [editHealth, setEditHealth] = useState(false);
   const [editHistory, setEditHistory] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -285,7 +287,7 @@ const Profile = () => {
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">My Profile</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">{t('profile.title')}</h1>
           <p className="text-muted-foreground">Manage your health profile and medical information</p>
         </div>
 
@@ -303,12 +305,12 @@ const Profile = () => {
                   {isEditing ? (
                     <>
                       <Save className="mr-2 h-4 w-4" />
-                      Save
+                      {t('common.save')}
                     </>
                   ) : (
                     <>
                       <Edit className="mr-2 h-4 w-4" />
-                      Edit
+                      {t('common.edit')}
                     </>
                   )}
                 </Button>
@@ -332,7 +334,7 @@ const Profile = () => {
               {/* Form Fields */}
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="name">Full Name</Label>
+                  <Label htmlFor="name">{t('profile.name')}</Label>
                   {isEditing ? (
                     <Input
                       id="name"
@@ -345,7 +347,7 @@ const Profile = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{t('profile.email')}</Label>
                   {isEditing ? (
                     <Input
                       id="email"
@@ -359,7 +361,7 @@ const Profile = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="phone">Phone</Label>
+                  <Label htmlFor="phone">{t('profile.phone')}</Label>
                   {isEditing ? (
                     <Input
                       id="phone"
@@ -372,7 +374,7 @@ const Profile = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="dob">Date of Birth</Label>
+                  <Label htmlFor="dob">{t('profile.dateOfBirth')}</Label>
                   {isEditing ? (
                     <Input
                       id="dob"

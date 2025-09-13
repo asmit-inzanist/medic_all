@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   Pill, 
   Building2, 
@@ -21,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 const Home = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const handleServiceClick = (href: string, serviceName: string) => {
     if (!user) {
@@ -45,8 +47,8 @@ const Home = () => {
   };
   const services = [
     {
-      title: 'Medicine Marketplace',
-      description: 'Search and purchase medications from verified local pharmacies',
+      title: t('home.medicineCatalogTitle'),
+      description: t('home.medicineCatalogDesc'),
       icon: Pill,
       color: 'border-l-medical-medicine',
       features: [
@@ -59,8 +61,8 @@ const Home = () => {
       href: '/medicine'
     },
     {
-      title: 'Hospital Booking',
-      description: 'Reserve beds and book appointments at top hospitals',
+      title: t('home.hospitalNetworkTitle'),
+      description: t('home.hospitalNetworkDesc'),
       icon: Building2,
       color: 'border-l-medical-hospital',
       features: [
@@ -73,8 +75,8 @@ const Home = () => {
       href: '/hospitals'
     },
     {
-      title: 'Doctor Consultation',
-      description: 'Connect with certified healthcare professionals online',
+      title: t('home.findDoctorsTitle'),
+      description: t('home.findDoctorsDesc'),
       icon: Video,
       color: 'border-l-medical-consultation',
       features: [
@@ -87,8 +89,8 @@ const Home = () => {
       href: '/doctors'
     },
     {
-      title: 'AI Health Assistant',
-      description: 'Get instant health guidance and preliminary assessments',
+      title: t('home.aiHealthTitle'),
+      description: t('home.aiHealthDesc'),
       icon: Bot,
       color: 'border-l-medical-ai',
       features: [
@@ -117,7 +119,7 @@ const Home = () => {
     },
     {
       icon: Phone,
-      title: 'Emergency Assistance',
+      title: t('home.emergencyContact'),
       description: 'Immediate help and guidance for urgent medical situations',
       bgColor: 'bg-red-50'
     }
@@ -127,7 +129,7 @@ const Home = () => {
     { icon: Users, value: '50,000+', label: 'Active Patients' },
     { icon: Award, value: '1,200+', label: 'Certified Doctors' },
     { icon: Shield, value: '99.9%', label: 'Data Security' },
-    { icon: Clock, value: '24/7', label: 'Support Available' }
+    { icon: Clock, value: t('home.feature24x7'), label: t('home.feature24x7Desc').split(' ')[0] }
   ];
 
   return (
@@ -136,18 +138,15 @@ const Home = () => {
       <section className="container mx-auto px-4 py-16 text-center">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6">
-            Your Complete
-            <br />
-            <span className="text-primary">Healthcare Companion</span>
+            {t('home.welcomeTitle')}
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Medic-AL makes healthcare accessible, convenient, and efficient for everyone. Get 
-            comprehensive medical assistance at your fingertips with our innovative platform.
+            {t('home.welcomeSubtitle')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             {user ? (
               <Button size="lg" className="bg-primary hover:bg-primary-hover" onClick={handleExploreServices}>
-                Explore Services
+                {t('home.exploreServices')}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             ) : (
@@ -169,7 +168,7 @@ const Home = () => {
       <section id="healthcare-services" className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Four Essential Healthcare Services
+            {t('home.servicesTitle')}
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Access comprehensive medical care through our integrated platform
@@ -249,7 +248,7 @@ const Home = () => {
       <section className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Enhanced Healthcare Experience
+            {t('home.featuresTitle')}
           </h2>
         </div>
 
@@ -274,7 +273,7 @@ const Home = () => {
       <footer className="bg-slate-900 text-white py-12 mt-16">
         <div className="container mx-auto px-4 text-center">
           <div className="mb-8">
-            <h3 className="text-2xl font-bold mb-4">Medic-AL</h3>
+            <h3 className="text-2xl font-bold mb-4">{t('common.brand')}</h3>
             <p className="text-slate-400 max-w-2xl mx-auto">
               Making healthcare accessible, convenient, and efficient for everyone through innovative 
               technology and user-friendly design.

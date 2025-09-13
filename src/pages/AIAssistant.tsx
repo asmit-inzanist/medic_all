@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Mic, Upload, History, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,23 +20,27 @@ interface Message {
 
 const AIAssistant = () => {
   const { user } = useAuth();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      type: 'bot',
-      content: "Hello! I'm your AI Health Assistant powered by Google Gemini. I can help you with symptom analysis, health advice, and medical information. Please note that I'm not a replacement for professional medical care. How can I assist you today?",
-      timestamp: new Date(),
-      suggestions: [
-        "I have a headache",
-        "Check my symptoms",
-        "Medication reminders",
-        "Health tips"
-      ]
-    }
-  ]);
+  const { t } = useTranslation();
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Initialize messages with translation
+  useEffect(() => {
+    setMessages([{
+      id: '1',
+      type: 'bot',
+      content: t('aiAssistant.initialMessage'),
+      timestamp: new Date(),
+      suggestions: [
+        t('aiAssistant.suggestions.headache'),
+        t('aiAssistant.suggestions.checkSymptoms'),
+        t('aiAssistant.suggestions.medicationReminders'),
+        t('aiAssistant.suggestions.healthTips')
+      ]
+    }]);
+  }, [t]); // Re-run when translations change
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -137,10 +142,10 @@ const AIAssistant = () => {
         content: response,
         timestamp: new Date(),
         suggestions: [
-          "Find nearby doctors",
-          "Emergency contacts",
-          "More health tips",
-          "Medication reminders"
+          t('aiAssistant.suggestions.findDoctors'),
+          t('aiAssistant.suggestions.emergencyContacts'),
+          t('aiAssistant.suggestions.moreHealthTips'),
+          t('aiAssistant.suggestions.medicationReminders')
         ]
       };
 
@@ -159,10 +164,10 @@ const AIAssistant = () => {
   };
 
   const quickActions = [
-    { text: "I have a headache", icon: "🤕" },
+    { text: t('aiAssistant.suggestions.headache'), icon: "🤕" },
     { text: "Check medication interactions", icon: "💊" },
-    { text: "Symptom checker", icon: "🩺" },
-    { text: "Find nearby doctor", icon: "👨‍⚕️" }
+    { text: t('aiAssistant.suggestions.checkSymptoms'), icon: "🩺" },
+    { text: t('aiAssistant.suggestions.findDoctors'), icon: "👨‍⚕️" }
   ];
 
   return (
@@ -175,8 +180,8 @@ const AIAssistant = () => {
               <Bot className="h-8 w-8 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">AI Health Assistant</h1>
-              <p className="text-muted-foreground">Powered by Google Gemini - Your 24/7 healthcare companion</p>
+              <h1 className="text-3xl font-bold text-foreground">{t('aiAssistant.title')}</h1>
+              <p className="text-muted-foreground">{t('aiAssistant.subtitle')}</p>
             </div>
           </div>
           
@@ -186,9 +191,9 @@ const AIAssistant = () => {
               <div className="flex items-start space-x-3">
                 <AlertCircle className="h-5 w-5 text-warning mt-0.5" />
                 <div className="text-sm">
-                  <p className="text-warning font-medium mb-1">Medical Disclaimer</p>
+                  <p className="text-warning font-medium mb-1">{t('aiAssistant.disclaimer')}</p>
                   <p className="text-muted-foreground">
-                    This AI assistant provides general health information only and is not a substitute for professional medical advice, diagnosis, or treatment. Always consult with qualified healthcare providers for medical concerns.
+                    {t('aiAssistant.disclaimerText')}
                   </p>
                 </div>
               </div>
@@ -306,7 +311,7 @@ const AIAssistant = () => {
               </Button>
               <div className="flex-1 flex space-x-2">
                 <Input
-                  placeholder="Type your health question or describe your symptoms..."
+                  placeholder={t('aiAssistant.placeholder')}
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSendMessage(inputValue)}
@@ -327,23 +332,23 @@ const AIAssistant = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
           <Card className="text-center p-6">
             <History className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Health History</h3>
-            <p className="text-muted-foreground mb-4">Track your medical history and share with doctors</p>
-            <Button variant="outline">View History</Button>
+            <h3 className="text-lg font-semibold mb-2">{t('aiAssistant.quickInfo.healthHistory')}</h3>
+            <p className="text-muted-foreground mb-4">{t('aiAssistant.quickInfo.healthHistoryDesc')}</p>
+            <Button variant="outline">{t('aiAssistant.quickInfo.viewHistory')}</Button>
           </Card>
 
           <Card className="text-center p-6">
             <Bot className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Symptom Checker</h3>
-            <p className="text-muted-foreground mb-4">Advanced AI-powered symptom analysis and recommendations</p>
-            <Button variant="outline">Start Check</Button>
+            <h3 className="text-lg font-semibold mb-2">{t('aiAssistant.quickInfo.symptomChecker')}</h3>
+            <p className="text-muted-foreground mb-4">{t('aiAssistant.quickInfo.symptomCheckerDesc')}</p>
+            <Button variant="outline">{t('aiAssistant.quickInfo.startCheck')}</Button>
           </Card>
 
           <Card className="text-center p-6">
             <AlertCircle className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Emergency Guide</h3>
-            <p className="text-muted-foreground mb-4">Quick access to emergency procedures and contacts</p>
-            <Button variant="outline">View Guide</Button>
+            <h3 className="text-lg font-semibold mb-2">{t('aiAssistant.quickInfo.emergencyGuide')}</h3>
+            <p className="text-muted-foreground mb-4">{t('aiAssistant.quickInfo.emergencyGuideDesc')}</p>
+            <Button variant="outline">{t('aiAssistant.quickInfo.viewGuide')}</Button>
           </Card>
         </div>
       </div>

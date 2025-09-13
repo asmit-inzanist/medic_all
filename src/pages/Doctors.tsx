@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Search, Filter, Video, Calendar, Star, MapPin, Clock, Award, MessageCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +15,7 @@ import {
 } from '@/components/ui/select';
 
 const Doctors = () => {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
 
   const doctors = [
