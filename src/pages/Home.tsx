@@ -130,23 +130,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          {stats.map((stat, index) => (
-            <div key={index} className="text-center">
-              <div className="flex justify-center mb-4">
-                <div className="p-3 bg-primary/10 rounded-lg">
-                  <stat.icon className="h-6 w-6 text-primary" />
-                </div>
-              </div>
-              <div className="text-2xl font-bold text-foreground mb-1">{stat.value}</div>
-              <div className="text-sm text-muted-foreground">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* Services Section */}
       <section className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
@@ -196,6 +179,23 @@ const Home = () => {
                 </Button>
               </CardContent>
             </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          {stats.map((stat, index) => (
+            <div key={index} className="text-center">
+              <div className="flex justify-center mb-4">
+                <div className="p-3 bg-primary/10 rounded-lg">
+                  <stat.icon className="h-6 w-6 text-primary" />
+                </div>
+              </div>
+              <div className="text-2xl font-bold text-foreground mb-1">{stat.value}</div>
+              <div className="text-sm text-muted-foreground">{stat.label}</div>
+            </div>
           ))}
         </div>
       </section>
