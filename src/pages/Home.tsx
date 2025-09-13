@@ -33,6 +33,16 @@ const Home = () => {
     }
     // Navigate to service (handled by Link component)
   };
+
+  const handleExploreServices = () => {
+    const servicesSection = document.getElementById('healthcare-services');
+    if (servicesSection) {
+      servicesSection.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  };
   const services = [
     {
       title: 'Medicine Marketplace',
@@ -136,7 +146,7 @@ const Home = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             {user ? (
-              <Button size="lg" className="bg-primary hover:bg-primary-hover">
+              <Button size="lg" className="bg-primary hover:bg-primary-hover" onClick={handleExploreServices}>
                 Explore Services
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
@@ -156,7 +166,7 @@ const Home = () => {
       </section>
 
       {/* Services Section */}
-      <section className="container mx-auto px-4 py-16">
+      <section id="healthcare-services" className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
             Four Essential Healthcare Services

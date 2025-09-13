@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Message {
   id: string;
@@ -16,11 +18,12 @@ interface Message {
 }
 
 const AIAssistant = () => {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       type: 'bot',
-      content: "Hello! I'm your AI Health Assistant. I can help you with symptom analysis, health advice, and medical information. Please note that I'm not a replacement for professional medical care. How can I assist you today?",
+      content: "Hello! I'm your AI Health Assistant powered by Google Gemini. I can help you with symptom analysis, health advice, and medical information. Please note that I'm not a replacement for professional medical care. How can I assist you today?",
       timestamp: new Date(),
       suggestions: [
         "I have a headache",
@@ -42,27 +45,70 @@ const AIAssistant = () => {
     scrollToBottom();
   }, [messages]);
 
-  const simulateResponse = async (userMessage: string): Promise<string> => {
-    // Simulate AI processing delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    const responses = {
-      headache: "I understand you're experiencing a headache. Here are some initial suggestions:\n\n• Stay hydrated (drink water)\n• Rest in a quiet, dark room\n• Apply a cold or warm compress\n• Consider over-the-counter pain relief\n\n⚠️ **Seek immediate medical attention if:**\n• Sudden, severe headache unlike any before\n• Headache with fever, stiff neck, or rash\n• Headache after head injury\n\nWould you like me to help you find nearby healthcare providers?",
-      symptoms: "I'd be happy to help analyze your symptoms. Please tell me:\n\n1. What specific symptoms are you experiencing?\n2. When did they start?\n3. How severe are they (1-10 scale)?\n4. Any recent changes in medication or activities?\n\nThis information will help me provide better guidance. Remember, this is for informational purposes only.",
-      medication: "I can help you with medication reminders and information. Please tell me:\n\n• What medications do you currently take?\n• Do you need help setting up reminders?\n• Are you experiencing any side effects?\n\n💊 **Important:** Always consult your healthcare provider before making changes to your medication routine.",
-      default: "Thank you for your question. I'm here to help with health-related information and guidance. Could you please provide more details about your specific concern? The more information you share, the better I can assist you.\n\n🏥 **Remember:** For urgent medical issues, please contact emergency services or visit your nearest healthcare facility."
-    };
+  const callGeminiAPI = async (userMessage: string): Promise<string> => {
+    try {
+      console.log('🚀 Frontend: Calling AI with message:', userMessage);
+      
+      // Get user profile data for personalization
+      let userProfile = null;
+      if (user) {
+        console.log('👤 Frontend: Getting user profile...');
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+        userProfile = profile;
+        console.log('👤 Frontend: User profile retrieved:', !!userProfile);
+      }
 
-    const lowerMessage = userMessage.toLowerCase();
+      console.log('📡 Frontend: Calling Supabase function...');
+      
+      // Check if this is the first user message (after the initial bot greeting)
+      const userMessages = messages.filter(m => m.type === 'user');
+      const isFirstUserMessage = userMessages.length === 0;
+      
+      // Call the Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke('ai-chat', {
+        body: {
+          message: userMessage,
+          userProfile: userProfile,
+          isFirstMessage: isFirstUserMessage,
+          conversationHistory: messages.slice(-4) // Send last 4 messages for context
+        }
+      });
+
+      console.log('📡 Frontend: Function response:', { data, error });
+
+      if (error) {
+        console.error('❌ Frontend: Function error:', error);
+        return getFallbackResponse(userMessage);
+      }
+
+      if (data && data.response) {
+        console.log('✅ Frontend: Successfully got AI response');
+        return data.response;
+      } else {
+        console.log('⚠️ Frontend: No response from function, using fallback');
+        return getFallbackResponse(userMessage);
+      }
+    } catch (error) {
+      console.error('💥 Frontend: Error in callGeminiAPI:', error);
+      return getFallbackResponse(userMessage);
+    }
+  };
+
+  const getFallbackResponse = (message: string): string => {
+    const lowerMessage = message.toLowerCase();
     
-    if (lowerMessage.includes('headache') || lowerMessage.includes('head pain')) {
-      return responses.headache;
+    if (lowerMessage.includes('back pain') || lowerMessage.includes('backache')) {
+      return "I understand you're experiencing back pain. Here are some general recommendations:\n\n• Rest and avoid activities that worsen the pain\n• Apply ice for acute pain or heat for muscle tension\n• Gentle stretching and movement as tolerated\n• Over-the-counter pain relievers as directed\n\n⚠️ **Seek medical attention if:**\n• Pain is severe or getting worse\n• Pain radiates down your leg\n• You experience numbness or weakness\n• Pain follows an injury\n\nWould you like help finding nearby healthcare providers?";
+    } else if (lowerMessage.includes('headache') || lowerMessage.includes('head pain')) {
+      return "I understand you're experiencing a headache. Here are some initial suggestions:\n\n• Stay hydrated (drink water)\n• Rest in a quiet, dark room\n• Apply a cold or warm compress\n• Consider over-the-counter pain relief\n\n⚠️ **Seek immediate medical attention if:**\n• Sudden, severe headache unlike any before\n• Headache with fever, stiff neck, or rash\n• Headache after head injury\n\nWould you like me to help you find nearby healthcare providers?";
     } else if (lowerMessage.includes('symptom') || lowerMessage.includes('feel sick') || lowerMessage.includes('not well')) {
-      return responses.symptoms;
-    } else if (lowerMessage.includes('medication') || lowerMessage.includes('medicine') || lowerMessage.includes('pill')) {
-      return responses.medication;
+      return "I'd be happy to help analyze your symptoms. Please tell me:\n\n1. What specific symptoms are you experiencing?\n2. When did they start?\n3. How severe are they (1-10 scale)?\n4. Any recent changes in medication or activities?\n\nThis information will help me provide better guidance. Remember, this is for informational purposes only.";
     } else {
-      return responses.default;
+      return "Thank you for your question. I'm here to help with health-related information and guidance. Could you please provide more details about your specific concern?\n\n🏥 **Remember:** For urgent medical issues, please contact emergency services or visit your nearest healthcare facility.\n\nI'm currently experiencing some technical difficulties, but I'm working to provide you with the best possible assistance.";
     }
   };
 
@@ -82,8 +128,8 @@ const AIAssistant = () => {
     setIsLoading(true);
 
     try {
-      // Simulate AI response
-      const response = await simulateResponse(content);
+      // Call Gemini AI through Supabase Edge Function
+      const response = await callGeminiAPI(content);
       
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -130,7 +176,7 @@ const AIAssistant = () => {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-foreground">AI Health Assistant</h1>
-              <p className="text-muted-foreground">Your 24/7 healthcare companion for health guidance and support</p>
+              <p className="text-muted-foreground">Powered by Google Gemini - Your 24/7 healthcare companion</p>
             </div>
           </div>
           
