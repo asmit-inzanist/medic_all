@@ -15,8 +15,24 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 const Home = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  const handleServiceClick = (href: string, serviceName: string) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: `Please sign in to access ${serviceName}`,
+        variant: "destructive",
+      });
+      return;
+    }
+    // Navigate to service (handled by Link component)
+  };
   const services = [
     {
       title: 'Medicine Marketplace',
@@ -119,10 +135,19 @@ const Home = () => {
             comprehensive medical assistance at your fingertips with our innovative platform.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-primary hover:bg-primary-hover">
-              Get Started Today
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+            {user ? (
+              <Button size="lg" className="bg-primary hover:bg-primary-hover">
+                Explore Services
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            ) : (
+              <Button asChild size="lg" className="bg-primary hover:bg-primary-hover">
+                <Link to="/auth">
+                  Get Started Today
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+            )}
             <Button size="lg" variant="outline">
               Learn More
             </Button>
@@ -171,12 +196,22 @@ const Home = () => {
                   ))}
                 </div>
                 
-                <Button asChild className="w-full group-hover:bg-primary-hover transition-colors">
-                  <Link to={service.href}>
+                {user ? (
+                  <Button asChild className="w-full group-hover:bg-primary-hover transition-colors">
+                    <Link to={service.href}>
+                      {service.buttonText}
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button 
+                    className="w-full group-hover:bg-primary-hover transition-colors"
+                    onClick={() => handleServiceClick(service.href, service.title)}
+                  >
                     {service.buttonText}
                     <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
+                  </Button>
+                )}
               </CardContent>
             </Card>
           ))}
