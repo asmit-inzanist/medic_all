@@ -17,6 +17,7 @@ export type Database = {
       profiles: {
         Row: {
           allergies: string[] | null
+          blood_type: string | null
           created_at: string
           current_medications: string[] | null
           date_of_birth: string | null
@@ -24,15 +25,19 @@ export type Database = {
           emergency_contact: string | null
           first_name: string | null
           gender: string | null
+          height: string | null
           id: string
+          insurance_info: string | null
           last_name: string | null
           medical_conditions: string[] | null
           phone: string | null
           updated_at: string
           user_id: string
+          weight: string | null
         }
         Insert: {
           allergies?: string[] | null
+          blood_type?: string | null
           created_at?: string
           current_medications?: string[] | null
           date_of_birth?: string | null
@@ -40,15 +45,19 @@ export type Database = {
           emergency_contact?: string | null
           first_name?: string | null
           gender?: string | null
+          height?: string | null
           id?: string
+          insurance_info?: string | null
           last_name?: string | null
           medical_conditions?: string[] | null
           phone?: string | null
           updated_at?: string
           user_id: string
+          weight?: string | null
         }
         Update: {
           allergies?: string[] | null
+          blood_type?: string | null
           created_at?: string
           current_medications?: string[] | null
           date_of_birth?: string | null
@@ -56,12 +65,15 @@ export type Database = {
           emergency_contact?: string | null
           first_name?: string | null
           gender?: string | null
+          height?: string | null
           id?: string
+          insurance_info?: string | null
           last_name?: string | null
           medical_conditions?: string[] | null
           phone?: string | null
           updated_at?: string
           user_id?: string
+          weight?: string | null
         }
         Relationships: []
       }

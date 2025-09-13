@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   User, 
   Edit, 
@@ -28,24 +28,204 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const Profile = () => {
+  const { user } = useAuth();
+  const [editHealth, setEditHealth] = useState(false);
+  const [editHistory, setEditHistory] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const handleHealthEdit = () => setEditHealth(true);
+  const handleHealthSave = async () => {
+    await saveProfile();
+    setEditHealth(false);
+  };
+  const handleHistoryEdit = () => setEditHistory(true);
+  const handleHistorySave = async () => {
+    await saveProfile();
+    setEditHistory(false);
+  };
   const [isEditing, setIsEditing] = useState(false);
-  const [profileData, setProfileData] = useState({
-    name: 'John Doe',
-    email: 'john.doe@email.com',
-    phone: '+1 (555) 123-4567',
-    dateOfBirth: '1990-05-15',
-    gender: 'Male',
-    bloodType: 'O+',
-    height: '5\'10"',
-    weight: '175 lbs',
-    emergencyContact: 'Jane Doe - +1 (555) 765-4321',
-    allergies: 'Penicillin, Shellfish',
-    medications: 'Lisinopril 10mg daily',
-    conditions: 'Hypertension',
-    insurance: 'Blue Cross Blue Shield - Policy #123456789'
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  
+  // Initialize profile data from localStorage or empty
+  const [profileData, setProfileData] = useState(() => {
+    const savedProfile = localStorage.getItem('profileData');
+    if (savedProfile) {
+      return JSON.parse(savedProfile);
+    }
+    return {
+      name: '',
+      email: '',
+      phone: '',
+      dateOfBirth: '',
+      gender: '',
+      bloodType: '',
+      height: '',
+      weight: '',
+      emergencyContact: '',
+      allergies: '',
+      medications: '',
+      conditions: '',
+      insurance: ''
+    };
   });
+
+  // Load profile from Supabase
+  const loadProfile = async () => {
+    if (!user) return;
+    
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
+        console.error('Error loading profile:', error);
+        return;
+      }
+
+      if (data) {
+        const formattedData = {
+          name: `${data.first_name || ''} ${data.last_name || ''}`.trim(),
+          email: data.email || '',
+          phone: data.phone || '',
+          dateOfBirth: data.date_of_birth || '',
+          gender: data.gender || '',
+          bloodType: data.blood_type || '',
+          height: data.height || '',
+          weight: data.weight || '',
+          emergencyContact: data.emergency_contact || '',
+          allergies: data.allergies?.join(', ') || '',
+          medications: data.current_medications?.join(', ') || '',
+          conditions: data.medical_conditions?.join(', ') || '',
+          insurance: data.insurance_info || ''
+        };
+        setProfileData(formattedData);
+        localStorage.setItem('profileData', JSON.stringify(formattedData));
+      }
+    } catch (error) {
+      console.error('Error loading profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Save profile to Supabase
+  const saveProfile = async () => {
+    if (!user) return;
+
+    try {
+      const [firstName, ...lastNameParts] = profileData.name.split(' ');
+      const lastName = lastNameParts.join(' ');
+
+      const profilePayload = {
+        user_id: user.id,
+        first_name: firstName || null,
+        last_name: lastName || null,
+        email: profileData.email || null,
+        phone: profileData.phone || null,
+        date_of_birth: profileData.dateOfBirth || null,
+        gender: profileData.gender || null,
+        blood_type: profileData.bloodType || null,
+        height: profileData.height || null,
+        weight: profileData.weight || null,
+        emergency_contact: profileData.emergencyContact || null,
+        allergies: profileData.allergies ? profileData.allergies.split(',').map(s => s.trim()) : null,
+        current_medications: profileData.medications ? profileData.medications.split(',').map(s => s.trim()) : null,
+        medical_conditions: profileData.conditions ? profileData.conditions.split(',').map(s => s.trim()) : null,
+        insurance_info: profileData.insurance || null,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('profiles')
+        .upsert(profilePayload);
+
+      if (error) {
+        console.error('Error saving profile:', error);
+        toast.error('Failed to save profile');
+        return;
+      }
+
+      toast.success('Profile saved successfully');
+      localStorage.setItem('profileData', JSON.stringify(profileData));
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      toast.error('Failed to save profile');
+    }
+  };
+
+  // Check if profile is incomplete on component mount
+  useEffect(() => {
+    if (user) {
+      loadProfile();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (!loading) {
+      const isIncomplete = Object.values(profileData).every(value => value === '');
+      setShowOnboarding(isIncomplete);
+    }
+  }, [profileData, loading]);
+
+  // Check if all fields are blank (first time user)
+  const isProfileIncomplete = Object.values(profileData).some((v) => v === '');
+
+  // Show onboarding only if profile is incomplete and user hasn't skipped
+  const shouldShowOnboarding = showOnboarding && isProfileIncomplete;
+
+  const handleOnboardingChange = (e) => {
+    const { name, value } = e.target;
+    setProfileData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleOnboardingSubmit = async (e) => {
+    e.preventDefault();
+    await saveProfile();
+    setShowOnboarding(false);
+  };
+
+  const handleOnboardingSkip = () => {
+    setShowOnboarding(false);
+  };
+  // ...existing code...
+  // Onboarding modal
+  if (shouldShowOnboarding) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+        <form className="bg-white p-8 rounded-lg shadow-lg w-full max-w-xl" onSubmit={handleOnboardingSubmit}>
+          <h2 className="text-2xl font-bold mb-4">Complete Your Profile</h2>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <Input name="name" placeholder="Full Name" value={profileData.name} onChange={handleOnboardingChange} />
+            <Input name="email" placeholder="Email" value={profileData.email} onChange={handleOnboardingChange} />
+            <Input name="phone" placeholder="Phone" value={profileData.phone} onChange={handleOnboardingChange} />
+            <Input name="dateOfBirth" placeholder="Date of Birth" value={profileData.dateOfBirth} onChange={handleOnboardingChange} />
+            <Input name="gender" placeholder="Gender" value={profileData.gender} onChange={handleOnboardingChange} />
+            <Input name="bloodType" placeholder="Blood Type" value={profileData.bloodType} onChange={handleOnboardingChange} />
+            <Input name="height" placeholder="Height" value={profileData.height} onChange={handleOnboardingChange} />
+            <Input name="weight" placeholder="Weight" value={profileData.weight} onChange={handleOnboardingChange} />
+            <Input name="emergencyContact" placeholder="Emergency Contact" value={profileData.emergencyContact} onChange={handleOnboardingChange} />
+            <Input name="allergies" placeholder="Allergies" value={profileData.allergies} onChange={handleOnboardingChange} />
+            <Input name="medications" placeholder="Current Medications" value={profileData.medications} onChange={handleOnboardingChange} />
+            <Input name="conditions" placeholder="Medical Conditions" value={profileData.conditions} onChange={handleOnboardingChange} />
+            <Input name="insurance" placeholder="Insurance Information" value={profileData.insurance} onChange={handleOnboardingChange} />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={handleOnboardingSkip}>Skip</Button>
+            <Button type="submit">Save</Button>
+          </div>
+        </form>
+      </div>
+    );
+  }
 
   const recentActivities = [
     {
@@ -258,24 +438,53 @@ const Profile = () => {
                       Health Information
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label>Blood Type</Label>
-                      <p className="text-sm text-muted-foreground">{profileData.bloodType}</p>
-                    </div>
-                    <div>
-                      <Label>Height</Label>
-                      <p className="text-sm text-muted-foreground">{profileData.height}</p>
-                    </div>
-                    <div>
-                      <Label>Weight</Label>
-                      <p className="text-sm text-muted-foreground">{profileData.weight}</p>
-                    </div>
-                    <div>
-                      <Label>Emergency Contact</Label>
-                      <p className="text-sm text-muted-foreground">{profileData.emergencyContact}</p>
-                    </div>
-                  </CardContent>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {editHealth ? (
+                        <>
+                          <div>
+                            <Label>Blood Type</Label>
+                            <Input name="bloodType" value={profileData.bloodType} onChange={handleOnboardingChange} />
+                          </div>
+                          <div>
+                            <Label>Height</Label>
+                            <Input name="height" value={profileData.height} onChange={handleOnboardingChange} />
+                          </div>
+                          <div>
+                            <Label>Weight</Label>
+                            <Input name="weight" value={profileData.weight} onChange={handleOnboardingChange} />
+                          </div>
+                          <div>
+                            <Label>Emergency Contact</Label>
+                            <Input name="emergencyContact" value={profileData.emergencyContact} onChange={handleOnboardingChange} />
+                          </div>
+                          <div className="col-span-2 flex gap-2 mt-2">
+                            <Button variant="outline" onClick={handleHealthSave}>Save</Button>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div>
+                            <Label>Blood Type</Label>
+                            <p className="text-sm text-muted-foreground">{profileData.bloodType}</p>
+                          </div>
+                          <div>
+                            <Label>Height</Label>
+                            <p className="text-sm text-muted-foreground">{profileData.height}</p>
+                          </div>
+                          <div>
+                            <Label>Weight</Label>
+                            <p className="text-sm text-muted-foreground">{profileData.weight}</p>
+                          </div>
+                          <div>
+                            <Label>Emergency Contact</Label>
+                            <p className="text-sm text-muted-foreground">{profileData.emergencyContact}</p>
+                          </div>
+                          <div className="col-span-2 flex gap-2 mt-2">
+                            <Button variant="outline" onClick={handleHealthEdit}>Edit</Button>
+                          </div>
+                        </>
+                      )}
+                    </CardContent>
                 </Card>
 
                 <Card>
@@ -285,24 +494,53 @@ const Profile = () => {
                       Medical History
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label>Allergies</Label>
-                      <p className="text-sm text-muted-foreground">{profileData.allergies}</p>
-                    </div>
-                    <div>
-                      <Label>Current Medications</Label>
-                      <p className="text-sm text-muted-foreground">{profileData.medications}</p>
-                    </div>
-                    <div>
-                      <Label>Medical Conditions</Label>
-                      <p className="text-sm text-muted-foreground">{profileData.conditions}</p>
-                    </div>
-                    <div>
-                      <Label>Insurance Information</Label>
-                      <p className="text-sm text-muted-foreground">{profileData.insurance}</p>
-                    </div>
-                  </CardContent>
+                    <CardContent className="space-y-4">
+                      {editHistory ? (
+                        <>
+                          <div>
+                            <Label>Allergies</Label>
+                            <Input name="allergies" value={profileData.allergies} onChange={handleOnboardingChange} />
+                          </div>
+                          <div>
+                            <Label>Current Medications</Label>
+                            <Input name="medications" value={profileData.medications} onChange={handleOnboardingChange} />
+                          </div>
+                          <div>
+                            <Label>Medical Conditions</Label>
+                            <Input name="conditions" value={profileData.conditions} onChange={handleOnboardingChange} />
+                          </div>
+                          <div>
+                            <Label>Insurance Information</Label>
+                            <Input name="insurance" value={profileData.insurance} onChange={handleOnboardingChange} />
+                          </div>
+                          <div className="flex gap-2 mt-2">
+                            <Button variant="outline" onClick={handleHistorySave}>Save</Button>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div>
+                            <Label>Allergies</Label>
+                            <p className="text-sm text-muted-foreground">{profileData.allergies}</p>
+                          </div>
+                          <div>
+                            <Label>Current Medications</Label>
+                            <p className="text-sm text-muted-foreground">{profileData.medications}</p>
+                          </div>
+                          <div>
+                            <Label>Medical Conditions</Label>
+                            <p className="text-sm text-muted-foreground">{profileData.conditions}</p>
+                          </div>
+                          <div>
+                            <Label>Insurance Information</Label>
+                            <p className="text-sm text-muted-foreground">{profileData.insurance}</p>
+                          </div>
+                          <div className="flex gap-2 mt-2">
+                            <Button variant="outline" onClick={handleHistoryEdit}>Edit</Button>
+                          </div>
+                        </>
+                      )}
+                    </CardContent>
                 </Card>
 
                 <div className="flex gap-4">
