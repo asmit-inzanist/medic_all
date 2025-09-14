@@ -1,4 +1,95 @@
-# Welcome to your Lovable project
+# Medic-AL - Multilingual Healthcare Platform
+
+A comprehensive healthcare platform supporting 8 Indian languages with AI-powered medical assistance, GPS location services, and complete medical ecosystem integration.
+
+## 🌍 Supported Languages
+
+- English
+- Hindi (हिन्दी)
+- Bengali (বাংলা)
+- Tamil (தமிழ்)
+- Telugu (తెలుగు)
+- Gujarati (ગુજરાતી)
+- Marathi (मराठी)
+- Punjabi (ਪੰਜਾਬੀ)
+
+## 🚀 Features
+
+- **AI Health Assistant** - Google Gemini powered medical guidance
+- **Doctor Consultation** - Find and consult with certified doctors
+- **Hospital Network** - Access to trusted hospitals and medical centers
+- **Medicine Marketplace** - Search and purchase medications
+- **GPS Location Services** - Real-time location detection
+- **Multilingual Interface** - Complete healthcare accessibility in Indian languages
+
+## 🛠️ Technologies
+
+- **Frontend**: React + TypeScript + Vite
+- **UI**: shadcn/ui + Tailwind CSS  
+- **Backend**: Supabase
+- **AI**: Google Gemini
+- **Internationalization**: react-i18next
+
+## 📋 Setup Instructions
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/asmit-inzanist/medic_all.git
+cd medic_all
+```
+
+### 2. Install Dependencies
+```bash
+npm install
+```
+
+### 3. Environment Configuration
+```bash
+# Copy the example environment file
+cp .env.example .env
+
+# Edit .env with your actual values
+VITE_SUPABASE_PROJECT_ID="your_project_id"
+VITE_SUPABASE_PUBLISHABLE_KEY="your_publishable_key"
+VITE_SUPABASE_URL="https://your_project_id.supabase.co"
+```
+
+### 4. Supabase Setup
+```bash
+# Copy the example config
+cp supabase/config.example.toml supabase/config.toml
+
+# Edit config.toml with your project ID
+project_id = "your_supabase_project_id"
+```
+
+### 5. Start Development Server
+```bash
+npm run dev
+```
+
+## 🔒 Security Notice
+
+**IMPORTANT**: Never commit sensitive files to git:
+- `.env` files contain API keys and secrets
+- `supabase/config.toml` contains project credentials
+- Always use the `.example` files as templates
+
+## 🌐 Deployment
+
+The project can be deployed on any modern hosting platform:
+- Vercel
+- Netlify  
+- Render
+- Or use Lovable for instant deployment
+
+## 📝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## Project info
 

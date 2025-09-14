@@ -1,0 +1,7 @@
+# Supabase Configuration Example
+# Copy this file to config.toml and replace with your actual project ID
+# Never commit the actual config.toml with real credentials
+
+project_id = "your_supabase_project_id_here"
+
+# Add other Supabase configuration as needed
