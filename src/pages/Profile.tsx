@@ -12,7 +12,8 @@ import {
   Shield,
   Bell,
   Download,
-  Upload
+  Upload,
+  Folder
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,6 +33,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import MedicalDocumentsManager from '@/components/MedicalDocumentsManager';
 
 const Profile = () => {
   const { user } = useAuth();
@@ -424,8 +426,9 @@ const Profile = () => {
           {/* Main Content */}
           <div className="lg:col-span-2">
             <Tabs defaultValue="medical" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="medical">Medical</TabsTrigger>
+                <TabsTrigger value="documents">Documents</TabsTrigger>
                 <TabsTrigger value="activity">Activity</TabsTrigger>
                 <TabsTrigger value="family">Family</TabsTrigger>
                 <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -551,10 +554,15 @@ const Profile = () => {
                     Export Medical Records
                   </Button>
                   <Button variant="outline" className="flex-1">
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload Documents
+                    <Folder className="mr-2 h-4 w-4" />
+                    View Documents
                   </Button>
                 </div>
+              </TabsContent>
+
+              {/* Documents Tab */}
+              <TabsContent value="documents" className="space-y-6">
+                <MedicalDocumentsManager />
               </TabsContent>
 
               {/* Activity Tab */}

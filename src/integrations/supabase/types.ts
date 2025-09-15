@@ -14,155 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
-      medicines: {
+      medical_documents: {
         Row: {
-          brand: string | null
-          category: string
-          created_at: string
+          id: string
+          user_id: string
+          document_name: string
+          document_type: string
+          file_path: string
+          file_url: string | null
+          file_size: number
+          mime_type: string
+          upload_date: string
           description: string | null
-          form: string | null
-          generic_name: string | null
-          id: string
-          manufacturer: string | null
-          name: string
-          requires_prescription: boolean | null
-          strength: string | null
+          is_active: boolean
+          created_at: string
           updated_at: string
         }
         Insert: {
-          brand?: string | null
-          category: string
-          created_at?: string
-          description?: string | null
-          form?: string | null
-          generic_name?: string | null
           id?: string
-          manufacturer?: string | null
-          name: string
-          requires_prescription?: boolean | null
-          strength?: string | null
+          user_id: string
+          document_name: string
+          document_type: string
+          file_path: string
+          file_url?: string | null
+          file_size: number
+          mime_type: string
+          upload_date?: string
+          description?: string | null
+          is_active?: boolean
+          created_at?: string
           updated_at?: string
         }
         Update: {
-          brand?: string | null
-          category?: string
-          created_at?: string
-          description?: string | null
-          form?: string | null
-          generic_name?: string | null
           id?: string
-          manufacturer?: string | null
-          name?: string
-          requires_prescription?: boolean | null
-          strength?: string | null
+          user_id?: string
+          document_name?: string
+          document_type?: string
+          file_path?: string
+          file_url?: string | null
+          file_size?: number
+          mime_type?: string
+          upload_date?: string
+          description?: string | null
+          is_active?: boolean
+          created_at?: string
           updated_at?: string
         }
         Relationships: []
-      }
-      pharmacies: {
-        Row: {
-          address: string
-          created_at: string
-          delivery_time: string | null
-          email: string | null
-          id: string
-          is_active: boolean | null
-          is_verified: boolean | null
-          latitude: number
-          longitude: number
-          name: string
-          phone: string | null
-          rating: number | null
-          total_reviews: number | null
-          updated_at: string
-        }
-        Insert: {
-          address: string
-          created_at?: string
-          delivery_time?: string | null
-          email?: string | null
-          id?: string
-          is_active?: boolean | null
-          is_verified?: boolean | null
-          latitude: number
-          longitude: number
-          name: string
-          phone?: string | null
-          rating?: number | null
-          total_reviews?: number | null
-          updated_at?: string
-        }
-        Update: {
-          address?: string
-          created_at?: string
-          delivery_time?: string | null
-          email?: string | null
-          id?: string
-          is_active?: boolean | null
-          is_verified?: boolean | null
-          latitude?: number
-          longitude?: number
-          name?: string
-          phone?: string | null
-          rating?: number | null
-          total_reviews?: number | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      pharmacy_inventory: {
-        Row: {
-          created_at: string
-          expiry_date: string | null
-          id: string
-          is_available: boolean | null
-          medicine_id: string
-          original_price: number | null
-          pharmacy_id: string
-          price: number
-          stock_quantity: number | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          expiry_date?: string | null
-          id?: string
-          is_available?: boolean | null
-          medicine_id: string
-          original_price?: number | null
-          pharmacy_id: string
-          price: number
-          stock_quantity?: number | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          expiry_date?: string | null
-          id?: string
-          is_available?: boolean | null
-          medicine_id?: string
-          original_price?: number | null
-          pharmacy_id?: string
-          price?: number
-          stock_quantity?: number | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "pharmacy_inventory_medicine_id_fkey"
-            columns: ["medicine_id"]
-            isOneToOne: false
-            referencedRelation: "medicines"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pharmacy_inventory_pharmacy_id_fkey"
-            columns: ["pharmacy_id"]
-            isOneToOne: false
-            referencedRelation: "pharmacies"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       profiles: {
         Row: {
