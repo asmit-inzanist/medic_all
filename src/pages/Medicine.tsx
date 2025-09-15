@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Filter, ShoppingCart, Star, MapPin, Truck, Clock, MapPinOff, Loader2 } from 'lucide-react';
+import { Search, Filter, ShoppingCart, Star, MapPin, Truck, Clock, MapPinOff, Loader2, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,40 +11,74 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useMedicineSearch } from '@/hooks/useMedicineSearch';
 import useLocation from '@/hooks/useLocation';
+import { useRealPharmacies } from '@/hooks/useRealPharmacies';
+import { PharmacyDetails } from '@/components/PharmacyDetails';
 
 const Medicine = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState<'price-low' | 'price-high' | 'rating' | 'delivery' | 'distance'>('distance');
   const [cartItems, setCartItems] = useState(0);
+  const [selectedPharmacy, setSelectedPharmacy] = useState<any>(null);
+  const [showRealPharmacies, setShowRealPharmacies] = useState(false);
 
   // Location hook
   const { location, isLoading: locationLoading, error: locationError, getCurrentLocation, hasPermission } = useLocation();
   
-  // Medicine search hook
+  // Medicine search hook (for sample data)
   const { 
     medicines, 
     isLoading: medicinesLoading, 
     error: medicinesError, 
     categories 
   } = useMedicineSearch({
-    searchTerm,
+    searchTerm: showRealPharmacies ? '' : searchTerm, // Don't search medicines when showing real pharmacies
     category: selectedCategory,
     sortBy,
     userLocation: location.coords,
     maxDistance: 10 // 10km radius
   });
 
+  // Real pharmacies hook
+  const { 
+    pharmacies: realPharmacies, 
+    isLoading: realPharmaciesLoading, 
+    error: realPharmaciesError, 
+    searchNearbyPharmacies 
+  } = useRealPharmacies();
+
   // Get location on component mount
   useEffect(() => {
     getCurrentLocation();
   }, [getCurrentLocation]);
 
+  // Search for real pharmacies when location is available
+  useEffect(() => {
+    if (location.coords && showRealPharmacies) {
+      searchNearbyPharmacies(location.coords.latitude, location.coords.longitude, 5);
+    }
+  }, [location.coords, showRealPharmacies, searchNearbyPharmacies]);
+
   const addToCart = (medicineId: string) => {
     setCartItems(cartItems + 1);
+  };
+
+  const handlePharmacyClick = (pharmacy: any) => {
+    setSelectedPharmacy(pharmacy);
+  };
+
+  const togglePharmacyView = () => {
+    setShowRealPharmacies(!showRealPharmacies);
+    setSelectedPharmacy(null);
   };
 
   const formatDistance = (distance?: number): string => {
@@ -53,15 +87,32 @@ const Medicine = () => {
   };
 
   const showLocationPrompt = !location.coords && !locationLoading;
-  const showNoResults = !medicinesLoading && medicines.length === 0 && location.coords;
+  const showNoResults = showRealPharmacies 
+    ? (!realPharmaciesLoading && realPharmacies.length === 0 && location.coords)
+    : (!medicinesLoading && medicines.length === 0 && location.coords);
+
+  const isLoading = showRealPharmacies ? realPharmaciesLoading : medicinesLoading;
+  const currentError = showRealPharmacies ? realPharmaciesError : medicinesError;
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Medicine Marketplace</h1>
-          <p className="text-muted-foreground">Find and order medications from verified pharmacies near you</p>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">Medicine Marketplace</h1>
+              <p className="text-muted-foreground">Find and order medications from verified pharmacies near you</p>
+            </div>
+            <Button 
+              variant={showRealPharmacies ? "default" : "outline"} 
+              onClick={togglePharmacyView}
+              className="flex items-center"
+            >
+              <MapPin className="mr-2 h-4 w-4" />
+              {showRealPharmacies ? 'Show Medicines' : 'Find Real Pharmacies'}
+            </Button>
+          </div>
         </div>
 
         {/* Location Status */}
@@ -108,6 +159,7 @@ const Medicine = () => {
         )}
 
         {/* Search and Filters */}
+        {!showRealPharmacies && (
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-8">
           <div className="md:col-span-6 relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -156,12 +208,13 @@ const Medicine = () => {
             </Button>
           </div>
         </div>
+        )}
 
         {/* Loading State */}
-        {medicinesLoading && (
+        {isLoading && (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin mr-2" />
-            <span>Finding medicines near you...</span>
+            <span>{showRealPharmacies ? 'Finding real pharmacies near you...' : 'Finding medicines near you...'}</span>
           </div>
         )}
 
@@ -169,33 +222,108 @@ const Medicine = () => {
         {showNoResults && (
           <div className="text-center py-12">
             <MapPinOff className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No medicines found nearby</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              {showRealPharmacies ? 'No pharmacies found nearby' : 'No medicines found nearby'}
+            </h3>
             <p className="text-muted-foreground mb-4">
-              {searchTerm 
-                ? `No results for "${searchTerm}" in your area. Try a different search term.`
-                : 'No pharmacies found within 10km of your location.'
+              {showRealPharmacies 
+                ? 'No pharmacies found within 5km of your location. Try refreshing or checking your location.'
+                : searchTerm 
+                  ? `No results for "${searchTerm}" in your area. Try a different search term.`
+                  : 'No pharmacies found within 10km of your location.'
               }
             </p>
             <Button variant="outline" onClick={() => {
-              setSearchTerm('');
-              setSelectedCategory('all');
+              if (showRealPharmacies) {
+                if (location.coords) {
+                  searchNearbyPharmacies(location.coords.latitude, location.coords.longitude, 10); // Try wider radius
+                }
+              } else {
+                setSearchTerm('');
+                setSelectedCategory('all');
+              }
             }}>
-              Clear Filters
+              {showRealPharmacies ? 'Search Wider Area' : 'Clear Filters'}
             </Button>
           </div>
         )}
 
         {/* Error State */}
-        {medicinesError && (
+        {currentError && (
           <Alert variant="destructive" className="mb-6">
             <AlertDescription>
-              {medicinesError} Please try again later.
+              {currentError} Please try again later.
             </AlertDescription>
           </Alert>
         )}
 
+        {/* Real Pharmacies Grid */}
+        {showRealPharmacies && !isLoading && !showNoResults && realPharmacies.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {realPharmacies.map((pharmacy) => (
+              <Card 
+                key={pharmacy.id} 
+                className="group hover:shadow-hover transition-all duration-300 cursor-pointer"
+                onClick={() => handlePharmacyClick(pharmacy)}
+              >
+                <CardHeader className="pb-3">
+                  <div className="aspect-square bg-gradient-card rounded-lg mb-3 overflow-hidden">
+                    <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                      <div className="text-center p-4">
+                        <MapPin className="h-12 w-12 text-primary mx-auto mb-2" />
+                        <div className="text-lg font-bold text-primary">{pharmacy.name}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <Badge variant="secondary" className="w-fit text-xs">
+                    Real Pharmacy
+                  </Badge>
+                </CardHeader>
+                
+                <CardContent className="pt-0">
+                  <CardTitle className="text-lg mb-2 line-clamp-2">
+                    {pharmacy.name}
+                  </CardTitle>
+                  
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-start text-sm text-muted-foreground">
+                      <MapPin className="h-4 w-4 mr-1 mt-0.5 flex-shrink-0" />
+                      <span className="line-clamp-2">{pharmacy.address}</span>
+                    </div>
+                    
+                    {pharmacy.distance && (
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <Navigation className="h-4 w-4 mr-1" />
+                        {formatDistance(pharmacy.distance)} away
+                      </div>
+                    )}
+
+                    {pharmacy.phone && (
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <span className="truncate">{pharmacy.phone}</span>
+                      </div>
+                    )}
+
+                    {pharmacy.opening_hours && (
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <Clock className="h-4 w-4 mr-1" />
+                        <span className="truncate">{pharmacy.opening_hours}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <Button className="w-full">
+                    <Navigation className="mr-2 h-4 w-4" />
+                    Get Directions
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+
         {/* Medicine Grid */}
-        {!medicinesLoading && !showNoResults && medicines.length > 0 && (
+        {!showRealPharmacies && !isLoading && !showNoResults && medicines.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {medicines.map((medicine) => (
               <Card key={medicine.id} className="group hover:shadow-hover transition-all duration-300">
@@ -272,6 +400,22 @@ const Medicine = () => {
             ))}
           </div>
         )}
+
+        {/* Pharmacy Details Dialog */}
+        <Dialog open={!!selectedPharmacy} onOpenChange={(open) => !open && setSelectedPharmacy(null)}>
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Pharmacy Details</DialogTitle>
+            </DialogHeader>
+            {selectedPharmacy && (
+              <PharmacyDetails 
+                pharmacy={selectedPharmacy}
+                userLocation={location.coords}
+                onClose={() => setSelectedPharmacy(null)}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Shopping Cart Button */}
         <div className="fixed bottom-6 right-6 z-50">
