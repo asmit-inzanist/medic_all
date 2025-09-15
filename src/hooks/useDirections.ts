@@ -19,7 +19,7 @@ interface UseDirectionsReturn {
   isLoading: boolean;
   error: string | null;
   getDirections: (fromLat: number, fromLng: number, toLat: number, toLng: number) => Promise<void>;
-  openInMaps: (toLat: number, toLng: number, label?: string) => void;
+  openInMaps: (toLat: number, toLng: number, label?: string, fromLat?: number, fromLng?: number) => void;
 }
 
 export const useDirections = (): UseDirectionsReturn => {
@@ -120,54 +120,43 @@ export const useDirections = (): UseDirectionsReturn => {
     return R * c;
   };
 
-  const openInMaps = useCallback((toLat: number, toLng: number, label?: string) => {
-    // Detect platform and open appropriate maps app
+  const openInMaps = useCallback((toLat: number, toLng: number, label?: string, fromLat?: number, fromLng?: number) => {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isAndroid = /Android/.test(navigator.userAgent);
-    
-    let mapsUrl = '';
-    
+
+    const appleUrl = `https://maps.apple.com/?daddr=${toLat},${toLng}${label ? `&q=${encodeURIComponent(label)}` : ''}`;
+    const googleUrl = `https://www.google.com/maps/dir/?api=1&destination=${toLat},${toLng}` +
+      (label ? `&query=${encodeURIComponent(label)}` : '') +
+      (fromLat !== undefined && fromLng !== undefined ? `&origin=${fromLat},${fromLng}` : '');
+    const androidIntent = `google.navigation:q=${toLat},${toLng}`;
+    const osmUrl = (fromLat !== undefined && fromLng !== undefined)
+      ? `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${encodeURIComponent(`${fromLat},${fromLng};${toLat},${toLng}`)}`
+      : `https://www.openstreetmap.org/?mlat=${toLat}&mlon=${toLng}#map=16/${toLat}/${toLng}`;
+
+    const openNew = (url: string) => window.open(url, '_blank', 'noopener,noreferrer');
+
     if (isIOS) {
-      // iOS: Try Apple Maps first, fallback to Google Maps
-      mapsUrl = `maps://?daddr=${toLat},${toLng}`;
-      if (label) {
-        mapsUrl += `&q=${encodeURIComponent(label)}`;
-      }
-      
-      // Try to open Apple Maps
-      const link = document.createElement('a');
-      link.href = mapsUrl;
-      link.click();
-      
-      // Fallback to Google Maps after a short delay if Apple Maps doesn't open
-      setTimeout(() => {
-        const googleMapsUrl = `https://maps.google.com/maps?daddr=${toLat},${toLng}`;
-        window.open(googleMapsUrl, '_blank');
-      }, 1000);
-      
-    } else if (isAndroid) {
-      // Android: Use Google Maps intent
-      mapsUrl = `google.navigation:q=${toLat},${toLng}`;
-      
-      // Try navigation intent first
-      const link = document.createElement('a');
-      link.href = mapsUrl;
-      link.click();
-      
-      // Fallback to web Google Maps
-      setTimeout(() => {
-        const googleMapsUrl = `https://maps.google.com/maps?daddr=${toLat},${toLng}`;
-        window.open(googleMapsUrl, '_blank');
-      }, 1000);
-      
-    } else {
-      // Desktop or other platforms: Use web Google Maps
-      mapsUrl = `https://maps.google.com/maps?daddr=${toLat},${toLng}`;
-      if (label) {
-        mapsUrl += `&q=${encodeURIComponent(label)}`;
-      }
-      window.open(mapsUrl, '_blank');
+      // Prefer Apple Maps on iOS, with Google as fallback
+      openNew(appleUrl);
+      setTimeout(() => openNew(googleUrl), 800);
+      return;
     }
+
+    if (isAndroid) {
+      // Try native navigation intent, then web link
+      try {
+        window.location.href = androidIntent;
+      } catch (_) {
+        // ignore
+      }
+      setTimeout(() => openNew(googleUrl), 600);
+      return;
+    }
+
+    // Desktop and others: open Google Maps web (more reliable than maps.google.com). If blocked, try OSM.
+    const newTab = openNew(googleUrl);
+    // As a passive fallback, also expose OSM via console for debugging
+    console.info('If Google Maps is blocked, use OpenStreetMap:', osmUrl);
   }, []);
 
   return {

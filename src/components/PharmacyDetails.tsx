@@ -75,7 +75,13 @@ export const PharmacyDetails: React.FC<PharmacyDetailsProps> = ({
   };
 
   const handleGetDirections = () => {
-    openInMaps(pharmacy.latitude, pharmacy.longitude, pharmacy.name);
+    openInMaps(
+      pharmacy.latitude,
+      pharmacy.longitude,
+      pharmacy.name,
+      userLocation?.latitude,
+      userLocation?.longitude
+    );
   };
 
   const handleCall = () => {
