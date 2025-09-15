@@ -128,6 +128,7 @@ export const useDirections = (): UseDirectionsReturn => {
     const googleUrl = `https://www.google.com/maps/dir/?api=1&destination=${toLat},${toLng}` +
       (label ? `&query=${encodeURIComponent(label)}` : '') +
       (fromLat !== undefined && fromLng !== undefined ? `&origin=${fromLat},${fromLng}` : '');
+    const androidGeo = `geo:${toLat},${toLng}?q=${encodeURIComponent(label ?? `${toLat},${toLng}`)}&z=16`;
     const androidIntent = `google.navigation:q=${toLat},${toLng}`;
     const osmUrl = (fromLat !== undefined && fromLng !== undefined)
       ? `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${encodeURIComponent(`${fromLat},${fromLng};${toLat},${toLng}`)}`
@@ -136,27 +137,28 @@ export const useDirections = (): UseDirectionsReturn => {
     const openNew = (url: string) => window.open(url, '_blank', 'noopener,noreferrer');
 
     if (isIOS) {
-      // Prefer Apple Maps on iOS, with Google as fallback
+      // Prefer Apple Maps on iOS; also provide Google as secondary fallback
       openNew(appleUrl);
       setTimeout(() => openNew(googleUrl), 800);
       return;
     }
 
     if (isAndroid) {
-      // Try native navigation intent, then web link
+      // Try generic geo: scheme (opens default maps), then Google navigation, then OSM web
       try {
-        window.location.href = androidIntent;
-      } catch (_) {
-        // ignore
-      }
-      setTimeout(() => openNew(googleUrl), 600);
+        window.location.href = androidGeo;
+      } catch (_) {}
+      setTimeout(() => {
+        try { window.location.href = androidIntent; } catch (_) {}
+      }, 400);
+      setTimeout(() => openNew(osmUrl), 800);
       return;
     }
 
-    // Desktop and others: open Google Maps web (more reliable than maps.google.com). If blocked, try OSM.
-    const newTab = openNew(googleUrl);
-    // As a passive fallback, also expose OSM via console for debugging
-    console.info('If Google Maps is blocked, use OpenStreetMap:', osmUrl);
+    // Desktop and others: use OpenStreetMap first to avoid Google being blocked in some environments
+    openNew(osmUrl);
+    // Optional secondary tab with Google Maps for users who prefer it
+    setTimeout(() => openNew(googleUrl), 500);
   }, []);
 
   return {
