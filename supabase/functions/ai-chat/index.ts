@@ -15,12 +15,13 @@ serve(async (req) => {
 
   try {
     // Parse request
-    const { message, userProfile, isFirstMessage, conversationHistory } = await req.json()
+    const { message, userProfile, isFirstMessage, conversationHistory, attachments } = await req.json()
     console.log('📩 Received message:', message)
     console.log('🔄 Is first message:', isFirstMessage)
+    console.log('📎 Attachments:', attachments?.length || 0)
     
-    if (!message) {
-      throw new Error('Message is required')
+    if (!message && (!attachments || attachments.length === 0)) {
+      throw new Error('Message or attachments are required')
     }
 
     // Get API key
@@ -40,6 +41,10 @@ serve(async (req) => {
       ? 'This is the first message - you may greet the user warmly by name if available in profile.'
       : 'This is a follow-up message - DO NOT greet by name again, just respond directly to their concern.';
 
+    const attachmentContext = attachments && attachments.length > 0 
+      ? `\n\nATTACHED DOCUMENTS: The user has shared ${attachments.length} medical document(s). Please analyze the images for text content including prescriptions, medical reports, lab results, or any medical information. Extract relevant details and provide insights based on what you can read from the documents.`
+      : '';
+
     const systemContext = `You are a helpful AI Health Assistant providing medical information and guidance. You are NOT a replacement for professional medical care.
 
 CONVERSATION GUIDELINES:
@@ -49,19 +54,42 @@ CONVERSATION GUIDELINES:
 - Avoid using asterisks (*) for emphasis - use natural language instead
 - Be direct, helpful, and empathetic
 - For serious symptoms, recommend seeking medical attention
+- When analyzing medical documents, extract key information like medication names, dosages, instructions, and recommendations
 
 RESPONSE FORMAT:
 - Write in a natural, conversational tone
 - Use simple formatting with dashes (-) for lists
 - Avoid repetitive greetings or name mentions
 - Focus on addressing the specific health concern
+- If documents are attached, analyze them thoroughly and provide insights
 
-User Profile: ${userProfile ? JSON.stringify(userProfile) : 'None provided'}${contextInfo}
-User Question: ${message}
+User Profile: ${userProfile ? JSON.stringify(userProfile) : 'None provided'}${contextInfo}${attachmentContext}
+User Question: ${message || 'Please analyze the attached medical documents.'}
 
 Provide a helpful, direct response about their health concern. Be empathetic but avoid over-formatting with asterisks.`
 
     console.log('🧠 Making Gemini API call...')
+
+    // Prepare content parts for the API call
+    const contentParts: any[] = [
+      {
+        text: systemContext
+      }
+    ];
+
+    // Add image attachments if present
+    if (attachments && attachments.length > 0) {
+      for (const attachment of attachments) {
+        if (attachment.base64Data && attachment.mimeType?.startsWith('image/')) {
+          contentParts.push({
+            inline_data: {
+              mime_type: attachment.mimeType,
+              data: attachment.base64Data
+            }
+          });
+        }
+      }
+    }
 
     // Call Gemini API with correct format
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`, {
@@ -72,11 +100,7 @@ Provide a helpful, direct response about their health concern. Be empathetic but
       body: JSON.stringify({
         contents: [
           {
-            parts: [
-              {
-                text: systemContext
-              }
-            ]
+            parts: contentParts
           }
         ],
         generationConfig: {
@@ -142,12 +166,13 @@ Provide a helpful, direct response about their health concern. Be empathetic but
     }
 
   } catch (error) {
-    console.error('💥 Function error:', error.message)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    console.error('💥 Function error:', errorMessage)
     
     // Return error response
     return new Response(
       JSON.stringify({
-        error: error.message,
+        error: errorMessage,
         response: "I'm experiencing technical difficulties right now. For immediate medical concerns, please contact your healthcare provider or emergency services."
       }),
       {

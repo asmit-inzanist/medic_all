@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Mic, Upload, History, AlertCircle } from 'lucide-react';
+import { Send, Bot, User, Mic, MicOff, Upload, History, AlertCircle, Languages, X, FileText, Image as ImageIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -16,6 +17,46 @@ interface Message {
   content: string;
   timestamp: Date;
   suggestions?: string[];
+  attachments?: UploadedFile[];
+}
+
+interface UploadedFile {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  content: string; // base64 or text content
+  preview?: string; // thumbnail for images
+}
+
+// Speech Recognition types
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
+}
+
+interface SpeechRecognitionEvent {
+  results: {
+    [index: number]: {
+      [index: number]: {
+        transcript: string;
+      };
+    };
+  };
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  onstart: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null;
+  onerror: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onend: ((this: SpeechRecognition, ev: Event) => any) | null;
 }
 
 const AIAssistant = () => {
@@ -24,7 +65,148 @@ const AIAssistant = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState('en-US');
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [isProcessingFile, setIsProcessingFile] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Supported languages for speech recognition
+  const supportedLanguages = [
+    { code: 'en-US', name: 'English', flag: '🇺🇸' },
+    { code: 'hi-IN', name: 'हिंदी (Hindi)', flag: '🇮🇳' },
+    { code: 'pa-IN', name: 'ਪੰਜਾਬੀ (Punjabi)', flag: '🇮🇳' }
+  ];
+
+  // Initialize speech recognition
+  useEffect(() => {
+    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      
+      if (recognitionRef.current) {
+        recognitionRef.current.continuous = false;
+        recognitionRef.current.interimResults = false;
+        recognitionRef.current.lang = selectedLanguage;
+        
+        recognitionRef.current.onstart = () => {
+          setIsRecording(true);
+        };
+        
+        recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
+          const transcript = event.results[0][0].transcript;
+          setInputValue(transcript);
+          setIsTranscribing(false);
+        };
+        
+        recognitionRef.current.onerror = (event) => {
+          console.error('Speech recognition error:', event);
+          setIsRecording(false);
+          setIsTranscribing(false);
+        };
+        
+        recognitionRef.current.onend = () => {
+          setIsRecording(false);
+          setIsTranscribing(false);
+        };
+      }
+    }
+  }, [selectedLanguage]);
+
+  const handleVoiceRecording = () => {
+    if (!recognitionRef.current) {
+      alert('Speech recognition is not supported in your browser');
+      return;
+    }
+
+    if (isRecording) {
+      recognitionRef.current.stop();
+    } else {
+      setIsTranscribing(true);
+      recognitionRef.current.start();
+    }
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsProcessingFile(true);
+    
+    Array.from(files).forEach((file) => {
+      // Validate file type
+      const allowedTypes = [
+        'application/pdf',
+        'image/jpeg',
+        'image/jpg', 
+        'image/png',
+        'image/webp',
+        'text/plain',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ];
+
+      if (!allowedTypes.includes(file.type)) {
+        alert(`File type ${file.type} is not supported. Please upload PDF, images, or text files.`);
+        setIsProcessingFile(false);
+        return;
+      }
+
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        alert('File size should be less than 10MB');
+        setIsProcessingFile(false);
+        return;
+      }
+
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        const content = e.target?.result as string;
+        const newFile: UploadedFile = {
+          id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          content: content,
+          preview: file.type.startsWith('image/') ? content : undefined
+        };
+
+        setUploadedFiles(prev => [...prev, newFile]);
+        setIsProcessingFile(false);
+      };
+
+      reader.onerror = () => {
+        alert('Error reading file');
+        setIsProcessingFile(false);
+      };
+
+      // Read file based on type
+      if (file.type.startsWith('image/')) {
+        reader.readAsDataURL(file);
+      } else if (file.type === 'text/plain') {
+        reader.readAsText(file);
+      } else {
+        reader.readAsDataURL(file); // For PDFs and other docs
+      }
+    });
+
+    // Reset file input
+    if (event.target) {
+      event.target.value = '';
+    }
+  };
+
+  const removeFile = (fileId: string) => {
+    setUploadedFiles(prev => prev.filter(file => file.id !== fileId));
+  };
+
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
+  };
 
   // Initialize messages with translation
   useEffect(() => {
@@ -50,9 +232,10 @@ const AIAssistant = () => {
     scrollToBottom();
   }, [messages]);
 
-  const callGeminiAPI = async (userMessage: string): Promise<string> => {
+  const callGeminiAPI = async (userMessage: string, attachments?: any[]): Promise<string> => {
     try {
       console.log('🚀 Frontend: Calling AI with message:', userMessage);
+      console.log('📎 Frontend: Attachments count:', attachments?.length || 0);
       
       // Get user profile data for personalization
       let userProfile = null;
@@ -79,7 +262,8 @@ const AIAssistant = () => {
           message: userMessage,
           userProfile: userProfile,
           isFirstMessage: isFirstUserMessage,
-          conversationHistory: messages.slice(-4) // Send last 4 messages for context
+          conversationHistory: messages.slice(-4), // Send last 4 messages for context
+          attachments: attachments || []
         }
       });
 
@@ -120,12 +304,13 @@ const AIAssistant = () => {
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
 
-    // Add user message
+    // Add user message with attachments
     const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
       content: content.trim(),
-      timestamp: new Date()
+      timestamp: new Date(),
+      attachments: uploadedFiles.length > 0 ? [...uploadedFiles] : undefined
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -133,8 +318,15 @@ const AIAssistant = () => {
     setIsLoading(true);
 
     try {
-      // Call Gemini AI through Supabase Edge Function
-      const response = await callGeminiAPI(content);
+      // Prepare attachments for API
+      const attachmentsForAPI = uploadedFiles.map(file => ({
+        name: file.name,
+        mimeType: file.type,
+        base64Data: file.content?.split(',')[1] // Remove data:image/jpeg;base64, prefix
+      }));
+
+      // Call Gemini AI through Supabase Edge Function with attachments
+      const response = await callGeminiAPI(content, attachmentsForAPI);
       
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -150,6 +342,9 @@ const AIAssistant = () => {
       };
 
       setMessages(prev => [...prev, botMessage]);
+      
+      // Clear uploaded files after successful message
+      setUploadedFiles([]);
     } catch (error) {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -234,6 +429,31 @@ const AIAssistant = () => {
                       }`}
                     >
                       <div className="whitespace-pre-wrap text-sm">{message.content}</div>
+                      
+                      {/* Display attachments */}
+                      {message.attachments && message.attachments.length > 0 && (
+                        <div className="mt-2 pt-2 border-t border-current/20">
+                          <div className="text-xs opacity-75 mb-2">📎 Attachments ({message.attachments.length})</div>
+                          <div className="flex flex-wrap gap-1">
+                            {message.attachments.map((file) => (
+                              <div key={file.id} className="flex items-center space-x-1 bg-black/10 rounded px-2 py-1">
+                                {file.type.startsWith('image/') ? (
+                                  file.preview && (
+                                    <img 
+                                      src={file.preview} 
+                                      alt={file.name}
+                                      className="w-4 h-4 object-cover rounded"
+                                    />
+                                  )
+                                ) : (
+                                  <FileText className="w-4 h-4" />
+                                )}
+                                <span className="text-xs truncate max-w-20">{file.name}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                     
                     <div className={`text-xs text-muted-foreground mt-1 ${
@@ -301,13 +521,107 @@ const AIAssistant = () => {
               ))}
             </div>
 
+            {/* Uploaded Files Preview */}
+            {uploadedFiles.length > 0 && (
+              <div className="mb-4 p-3 bg-muted rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">Uploaded Documents ({uploadedFiles.length})</span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setUploadedFiles([])}
+                    className="text-xs h-6"
+                  >
+                    Clear All
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {uploadedFiles.map((file) => (
+                    <div key={file.id} className="relative group">
+                      <div className="flex items-center space-x-2 bg-background p-2 rounded border">
+                        {file.type.startsWith('image/') ? (
+                          <div className="relative">
+                            <img 
+                              src={file.preview} 
+                              alt={file.name}
+                              className="w-8 h-8 object-cover rounded"
+                            />
+                            <ImageIcon className="w-3 h-3 absolute -top-1 -right-1 bg-background rounded-full p-0.5" />
+                          </div>
+                        ) : (
+                          <FileText className="w-8 h-8 text-muted-foreground" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium truncate max-w-24">{file.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {(file.size / 1024).toFixed(1)}KB
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeFile(file.id)}
+                          className="w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Input */}
             <div className="flex space-x-2">
-              <Button variant="outline" size="icon">
-                <Upload className="h-4 w-4" />
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                multiple
+                accept=".pdf,.jpg,.jpeg,.png,.webp,.txt,.doc,.docx"
+                className="hidden"
+              />
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={triggerFileUpload}
+                disabled={isProcessingFile}
+                title="Upload medical documents"
+              >
+                <Upload className={`h-4 w-4 ${isProcessingFile ? 'animate-pulse' : ''}`} />
               </Button>
-              <Button variant="outline" size="icon">
-                <Mic className="h-4 w-4" />
+              <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                <SelectTrigger className="w-32">
+                  <SelectValue>
+                    <div className="flex items-center space-x-1">
+                      <Languages className="h-3 w-3" />
+                      <span className="text-xs">
+                        {supportedLanguages.find(lang => lang.code === selectedLanguage)?.flag}
+                      </span>
+                    </div>
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {supportedLanguages.map((language) => (
+                    <SelectItem key={language.code} value={language.code}>
+                      <div className="flex items-center space-x-2">
+                        <span>{language.flag}</span>
+                        <span>{language.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={handleVoiceRecording}
+                disabled={isLoading}
+                className={isRecording ? "bg-red-100 text-red-600" : ""}
+                title={`Record in ${supportedLanguages.find(lang => lang.code === selectedLanguage)?.name}`}
+              >
+                {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
               </Button>
               <div className="flex-1 flex space-x-2">
                 <Input
