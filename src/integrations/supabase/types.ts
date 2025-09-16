@@ -14,53 +14,316 @@ export type Database = {
   }
   public: {
     Tables: {
-      medical_documents: {
+      bed_bookings: {
         Row: {
+          admission_type: string
+          booking_date: string
+          created_at: string | null
+          hospital_id: string | null
           id: string
-          user_id: string
-          document_name: string
-          document_type: string
-          file_path: string
-          file_url: string | null
-          file_size: number
-          mime_type: string
-          upload_date: string
-          description: string | null
-          is_active: boolean
-          created_at: string
-          updated_at: string
+          patient_age: number
+          patient_name: string
+          patient_phone: string
+          special_requirements: string | null
+          status: string
+          updated_at: string | null
+          user_id: string | null
         }
         Insert: {
+          admission_type: string
+          booking_date: string
+          created_at?: string | null
+          hospital_id?: string | null
           id?: string
-          user_id: string
+          patient_age: number
+          patient_name: string
+          patient_phone: string
+          special_requirements?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          admission_type?: string
+          booking_date?: string
+          created_at?: string | null
+          hospital_id?: string | null
+          id?: string
+          patient_age?: number
+          patient_name?: string
+          patient_phone?: string
+          special_requirements?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bed_bookings_hospital_id_fkey"
+            columns: ["hospital_id"]
+            isOneToOne: false
+            referencedRelation: "hospitals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hospitals: {
+        Row: {
+          accepts_emergency: boolean | null
+          address: string
+          available_beds: number | null
+          created_at: string | null
+          emergency_beds: number | null
+          google_maps_url: string
+          id: string
+          insurance_accepted: string[] | null
+          is_24_hours: boolean | null
+          name: string
+          operating_hours: string | null
+          phone: string | null
+          rating: number | null
+          review_count: number | null
+          specialties: string[] | null
+          total_beds: number | null
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          accepts_emergency?: boolean | null
+          address: string
+          available_beds?: number | null
+          created_at?: string | null
+          emergency_beds?: number | null
+          google_maps_url: string
+          id?: string
+          insurance_accepted?: string[] | null
+          is_24_hours?: boolean | null
+          name: string
+          operating_hours?: string | null
+          phone?: string | null
+          rating?: number | null
+          review_count?: number | null
+          specialties?: string[] | null
+          total_beds?: number | null
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          accepts_emergency?: boolean | null
+          address?: string
+          available_beds?: number | null
+          created_at?: string | null
+          emergency_beds?: number | null
+          google_maps_url?: string
+          id?: string
+          insurance_accepted?: string[] | null
+          is_24_hours?: boolean | null
+          name?: string
+          operating_hours?: string | null
+          phone?: string | null
+          rating?: number | null
+          review_count?: number | null
+          specialties?: string[] | null
+          total_beds?: number | null
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      medical_documents: {
+        Row: {
+          created_at: string
+          description: string | null
           document_name: string
           document_type: string
           file_path: string
-          file_url?: string | null
           file_size: number
+          file_url: string | null
+          id: string
           mime_type: string
-          upload_date?: string
-          description?: string | null
-          is_active?: boolean
+          updated_at: string
+          upload_date: string
+          user_id: string
+        }
+        Insert: {
           created_at?: string
+          description?: string | null
+          document_name: string
+          document_type: string
+          file_path: string
+          file_size: number
+          file_url?: string | null
+          id?: string
+          mime_type: string
           updated_at?: string
+          upload_date?: string
+          user_id: string
         }
         Update: {
-          id?: string
-          user_id?: string
+          created_at?: string
+          description?: string | null
           document_name?: string
           document_type?: string
           file_path?: string
-          file_url?: string | null
           file_size?: number
+          file_url?: string | null
+          id?: string
           mime_type?: string
+          updated_at?: string
           upload_date?: string
-          description?: string | null
-          is_active?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
+      medicines: {
+        Row: {
+          brand: string | null
+          category: string
+          created_at: string
+          description: string | null
+          form: string | null
+          generic_name: string | null
+          id: string
+          manufacturer: string | null
+          name: string
+          requires_prescription: boolean | null
+          strength: string | null
+          updated_at: string
+        }
+        Insert: {
+          brand?: string | null
+          category: string
           created_at?: string
+          description?: string | null
+          form?: string | null
+          generic_name?: string | null
+          id?: string
+          manufacturer?: string | null
+          name: string
+          requires_prescription?: boolean | null
+          strength?: string | null
+          updated_at?: string
+        }
+        Update: {
+          brand?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          form?: string | null
+          generic_name?: string | null
+          id?: string
+          manufacturer?: string | null
+          name?: string
+          requires_prescription?: boolean | null
+          strength?: string | null
           updated_at?: string
         }
         Relationships: []
+      }
+      pharmacies: {
+        Row: {
+          address: string
+          created_at: string
+          delivery_time: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          is_verified: boolean | null
+          latitude: number
+          longitude: number
+          name: string
+          phone: string | null
+          rating: number | null
+          total_reviews: number | null
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          delivery_time?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          latitude: number
+          longitude: number
+          name: string
+          phone?: string | null
+          rating?: number | null
+          total_reviews?: number | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          delivery_time?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          latitude?: number
+          longitude?: number
+          name?: string
+          phone?: string | null
+          rating?: number | null
+          total_reviews?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pharmacy_inventory: {
+        Row: {
+          created_at: string
+          expiry_date: string | null
+          id: string
+          is_available: boolean | null
+          medicine_id: string
+          original_price: number | null
+          pharmacy_id: string
+          price: number
+          stock_quantity: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          is_available?: boolean | null
+          medicine_id: string
+          original_price?: number | null
+          pharmacy_id: string
+          price: number
+          stock_quantity?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          is_available?: boolean | null
+          medicine_id?: string
+          original_price?: number | null
+          pharmacy_id?: string
+          price?: number
+          stock_quantity?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_inventory_medicine_id_fkey"
+            columns: ["medicine_id"]
+            isOneToOne: false
+            referencedRelation: "medicines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_inventory_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -122,6 +385,48 @@ export type Database = {
           updated_at?: string
           user_id?: string
           weight?: string | null
+        }
+        Relationships: []
+      }
+      video_calls: {
+        Row: {
+          caller_email: string
+          caller_id: string
+          caller_name: string | null
+          created_at: string
+          id: string
+          receiver_email: string
+          receiver_id: string
+          receiver_name: string | null
+          room_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          caller_email: string
+          caller_id: string
+          caller_name?: string | null
+          created_at?: string
+          id?: string
+          receiver_email: string
+          receiver_id: string
+          receiver_name?: string | null
+          room_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          caller_email?: string
+          caller_id?: string
+          caller_name?: string | null
+          created_at?: string
+          id?: string
+          receiver_email?: string
+          receiver_id?: string
+          receiver_name?: string | null
+          room_id?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }

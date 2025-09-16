@@ -95,7 +95,7 @@ const CallNotification: React.FC<CallNotificationProps> = ({ onJoinCall }) => {
 
     try {
       // Update call status to accepted
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('video_calls')
         .update({ status: 'accepted' })
         .eq('id', incomingCall.id);
@@ -127,7 +127,7 @@ const CallNotification: React.FC<CallNotificationProps> = ({ onJoinCall }) => {
 
     try {
       // Update call status to declined
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('video_calls')
         .update({ status: 'declined' })
         .eq('id', incomingCall.id);

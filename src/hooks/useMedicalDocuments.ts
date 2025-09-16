@@ -13,7 +13,7 @@ export interface MedicalDocument {
   mime_type: string;
   upload_date: string;
   description?: string;
-  is_active: boolean;
+  
 }
 
 export const useMedicalDocuments = () => {
@@ -28,7 +28,6 @@ export const useMedicalDocuments = () => {
       const { data, error } = await supabase
         .from('medical_documents')
         .select('*')
-        .eq('is_active', true)
         .order('upload_date', { ascending: false });
 
       if (error) {
@@ -142,7 +141,7 @@ export const useMedicalDocuments = () => {
       // Soft delete from database
       const { error: dbError } = await supabase
         .from('medical_documents')
-        .update({ is_active: false })
+        .delete()
         .eq('id', documentId);
 
       if (dbError) {
