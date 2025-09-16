@@ -1,101 +1,140 @@
-import { useState } from 'react';
-import { Search, Filter, Video, Calendar, Star, MapPin, Clock, Award, MessageCircle } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
+import React, { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Star, MapPin, Clock, Phone, Calendar, MessageSquare, Users, FileText, Video, Shield, CheckCircle, Search, Filter } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import CallNotification from '@/components/CallNotification';
+import VideoCall from '@/components/VideoCall';
 
 const Doctors = () => {
-  const { t } = useTranslation();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
+  const [callInitiated, setCallInitiated] = useState(false);
+  const [currentCall, setCurrentCall] = useState<{ roomId: string; doctorName: string } | null>(null);
+  const [inVideoCall, setInVideoCall] = useState(false);
 
   const doctors = [
     {
-      id: 1,
-      name: 'Dr. Sarah Wilson',
-      specialty: 'Cardiologist',
+      id: 'hardcoded-doctor',
+      name: 'Dr. Bineet Kumar',
+      email: 'bineetgdsc@gmail.com',
+      specialty: 'General Physician',
       rating: 4.9,
-      reviews: 324,
+      reviewCount: 324,
       experience: '15+ years',
-      education: 'MD, Johns Hopkins',
-      nextAvailable: 'Today 2:00 PM',
-      consultationFee: 120,
-      languages: ['English', 'Spanish'],
-      avatar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&h=150&fit=crop&crop=face',
-      verified: true,
-      totalPatients: '2,500+',
-      responseTime: '< 1 hour'
+      availability: 'Available Now',
+      location: 'MD, AIIMS Delhi',
+      image: '/placeholder.svg',
+      fee: 120,
+      responseTime: '< 1 hour',
+      languages: ['English', 'Hindi'],
+      patientsCount: 2500,
+      isOnline: true,
+      isVerified: true
     },
-    {
-      id: 2,
-      name: 'Dr. Michael Chen',
-      specialty: 'Neurologist',
-      rating: 4.8,
-      reviews: 289,
-      experience: '12+ years',
-      education: 'MD, Harvard Medical',
-      nextAvailable: 'Tomorrow 10:30 AM',
-      consultationFee: 150,
-      languages: ['English', 'Mandarin'],
-      avatar: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=150&h=150&fit=crop&crop=face',
-      verified: true,
-      totalPatients: '1,800+',
-      responseTime: '< 2 hours'
-    },
-    {
-      id: 3,
-      name: 'Dr. Emily Rodriguez',
-      specialty: 'Pediatrician',
-      rating: 4.9,
-      reviews: 456,
-      experience: '10+ years',
-      education: 'MD, Stanford University',
-      nextAvailable: 'Today 4:15 PM',
-      consultationFee: 100,
-      languages: ['English', 'Spanish', 'Portuguese'],
-      avatar: 'https://images.unsplash.com/photo-1594824694996-5b9e217a8657?w=150&h=150&fit=crop&crop=face',
-      verified: true,
-      totalPatients: '3,200+',
-      responseTime: '< 30 mins'
-    },
-    {
-      id: 4,
-      name: 'Dr. James Thompson',
-      specialty: 'Orthopedic Surgeon',
-      rating: 4.7,
-      reviews: 203,
-      experience: '20+ years',
-      education: 'MD, Mayo Clinic',
-      nextAvailable: 'Next Week',
-      consultationFee: 200,
-      languages: ['English'],
-      avatar: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=150&h=150&fit=crop&crop=face',
-      verified: true,
-      totalPatients: '1,500+',
-      responseTime: '< 4 hours'
-    }
   ];
 
   const specialties = [
-    'All Specialties', 'Cardiologist', 'Neurologist', 'Pediatrician', 
-    'Orthopedic Surgeon', 'Dermatologist', 'Psychiatrist', 'Gynecologist'
+    'All Specialties',
+    'General Physician',
+    'Cardiologist',
+    'Dermatologist',
+    'Pediatrician',
+    'Orthopedist',
+    'Neurologist',
+    'Psychiatrist'
   ];
+
+  const handleVideoCall = async (doctor: any) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to make a video call",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const roomId = `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Create call record in database
+      const { error: callError } = await (supabase as any)
+        .from('video_calls')
+        .insert({
+          caller_id: user.id,
+          receiver_id: doctor.id || 'doctor-placeholder-id',
+          caller_email: user.email,
+          receiver_email: doctor.email,
+          caller_name: user.email?.split('@')[0] || 'User',
+          receiver_name: doctor.name,
+          room_id: roomId,
+          status: 'ringing'
+        });
+
+      if (callError) {
+        console.error('Error creating call:', callError);
+        toast({
+          title: "Error",
+          description: "Failed to initiate call",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Show call initiated message
+      setCallInitiated(true);
+      setCurrentCall({ roomId, doctorName: doctor.name });
+      
+      toast({
+        title: "Video call initiated",
+        description: `Calling ${doctor.name}... They will receive a notification to join.`,
+        duration: 5000,
+      });
+
+      // Auto-enter the call room after 2 seconds
+      setTimeout(() => {
+        setInVideoCall(true);
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error initiating call:', error);
+      toast({
+        title: "Error",
+        description: "Failed to initiate video call",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleJoinCall = (roomId: string) => {
+    setCurrentCall({ roomId, doctorName: 'Dr. Bineet Kumar' });
+    setInVideoCall(true);
+  };
+
+  const handleLeaveCall = () => {
+    setInVideoCall(false);
+    setCurrentCall(null);
+    setCallInitiated(false);
+  };
+
+  if (inVideoCall && currentCall) {
+    return <VideoCall roomID={currentCall.roomId} onLeaveCall={handleLeaveCall} />;
+  }
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Doctor Consultation</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Find Doctors</h1>
           <p className="text-muted-foreground">Connect with certified healthcare professionals for online consultations</p>
         </div>
 
@@ -165,91 +204,96 @@ const Doctors = () => {
         {/* Doctor Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
           {doctors.map((doctor) => (
-            <Card key={doctor.id} className="hover:shadow-hover transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-start space-x-4 mb-6">
-                  <Avatar className="h-16 w-16">
-                    <AvatarImage src={doctor.avatar} alt={doctor.name} />
-                    <AvatarFallback>{doctor.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+            <Card key={doctor.id} className="p-6 hover:shadow-lg transition-shadow">
+              <div className="flex items-start gap-4">
+                <div className="relative">
+                  <Avatar className="w-20 h-20">
+                    <AvatarImage src={doctor.image} alt={doctor.name} />
+                    <AvatarFallback className="text-lg font-semibold bg-blue-100 text-blue-600">
+                      {doctor.name.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
                   </Avatar>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center mb-1">
-                      <h3 className="text-lg font-semibold truncate mr-2">{doctor.name}</h3>
-                      {doctor.verified && (
-                        <Badge variant="success" className="text-xs">
-                          <Award className="w-3 h-3 mr-1" />
-                          Verified
-                        </Badge>
-                      )}
+                  {doctor.isOnline && (
+                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-3 border-white flex items-center justify-center">
+                      <div className="w-3 h-3 bg-white rounded-full"></div>
                     </div>
-                    
-                    <p className="text-primary font-medium mb-2">{doctor.specialty}</p>
-                    
-                    <div className="flex items-center mb-2">
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
-                      <span className="font-medium mr-2">{doctor.rating}</span>
-                      <span className="text-sm text-muted-foreground">
-                        ({doctor.reviews} reviews)
-                      </span>
-                    </div>
-
-                    <div className="text-sm text-muted-foreground space-y-1">
-                      <div>{doctor.education}</div>
-                      <div>{doctor.experience} experience</div>
-                    </div>
-                  </div>
+                  )}
                 </div>
-
-                {/* Stats */}
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="text-center">
-                    <div className="text-lg font-semibold text-primary">{doctor.totalPatients}</div>
-                    <div className="text-xs text-muted-foreground">Patients Treated</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-semibold text-primary">${doctor.consultationFee}</div>
-                    <div className="text-xs text-muted-foreground">Consultation Fee</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-semibold text-primary">{doctor.responseTime}</div>
-                    <div className="text-xs text-muted-foreground">Response Time</div>
-                  </div>
-                </div>
-
-                {/* Languages */}
-                <div className="mb-4">
-                  <div className="text-sm text-muted-foreground mb-2">Languages:</div>
-                  <div className="flex flex-wrap gap-2">
-                    {doctor.languages.map((lang, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {lang}
+                
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-xl font-semibold text-foreground">{doctor.name}</h3>
+                    {doctor.isVerified && (
+                      <div className="flex items-center gap-1">
+                        <Shield className="w-4 h-4 text-blue-600" />
+                        <span className="text-sm text-blue-600 font-medium">Verified</span>
+                      </div>
+                    )}
+                    {doctor.isOnline && (
+                      <Badge className="bg-green-500 hover:bg-green-600 text-white">
+                        Online
                       </Badge>
+                    )}
+                  </div>
+                  
+                  <p className="text-blue-600 font-medium mb-2">{doctor.specialty}</p>
+                  
+                  <div className="flex items-center gap-1 mb-2">
+                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                    <span className="font-semibold">{doctor.rating}</span>
+                    <span className="text-muted-foreground">({doctor.reviewCount} reviews)</span>
+                  </div>
+                  
+                  <p className="text-muted-foreground mb-2">{doctor.location}</p>
+                  <p className="text-muted-foreground mb-4">{doctor.experience}</p>
+                  
+                  <div className="grid grid-cols-3 gap-4 mb-4">
+                    <div className="text-center">
+                      <div className="text-xl font-bold text-blue-600">{doctor.patientsCount.toLocaleString()}+</div>
+                      <div className="text-xs text-muted-foreground">Patients Treated</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xl font-bold text-blue-600">${doctor.fee}</div>
+                      <div className="text-xs text-muted-foreground">Consultation Fee</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xl font-bold text-blue-600">{doctor.responseTime}</div>
+                      <div className="text-xs text-muted-foreground">Response Time</div>
+                    </div>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <span className="text-sm font-medium text-muted-foreground">Languages: </span>
+                    {doctor.languages.map((lang: string, index: number) => (
+                      <span key={lang} className="text-sm mr-3 last:mr-0">
+                        {lang}
+                      </span>
                     ))}
                   </div>
-                </div>
-
-                {/* Availability */}
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center text-sm">
-                    <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                    <span className="text-muted-foreground">Next Available:</span>
-                    <span className="ml-1 font-medium text-success">{doctor.nextAvailable}</span>
+                  
+                  <div className="flex items-center gap-2 mb-4">
+                    <Clock className="w-4 h-4 text-green-600" />
+                    <span className="text-sm">
+                      <span className="text-muted-foreground">Next Available: </span>
+                      <span className="text-green-600 font-medium">{doctor.availability}</span>
+                    </span>
+                  </div>
+                  
+                  <div className="flex gap-3">
+                    <Button 
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                      onClick={() => handleVideoCall(doctor)}
+                    >
+                      <Phone className="w-4 h-4 mr-2" />
+                      Call Now
+                    </Button>
+                    <Button variant="outline" className="flex-1">
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Schedule
+                    </Button>
                   </div>
                 </div>
-
-                {/* Actions */}
-                <div className="grid grid-cols-2 gap-3">
-                  <Button className="w-full">
-                    <Video className="mr-2 h-4 w-4" />
-                    Video Call
-                  </Button>
-                  <Button variant="outline" className="w-full">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    Schedule
-                  </Button>
-                </div>
-              </CardContent>
+              </div>
             </Card>
           ))}
         </div>
@@ -257,7 +301,7 @@ const Doctors = () => {
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="text-center p-6">
-            <MessageCircle className="h-12 w-12 text-primary mx-auto mb-4" />
+            <MessageSquare className="h-12 w-12 text-primary mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">Chat with Doctor</h3>
             <p className="text-muted-foreground mb-4">Start a text-based consultation for quick medical advice</p>
             <Button variant="outline">Start Chat</Button>
@@ -271,13 +315,15 @@ const Doctors = () => {
           </Card>
 
           <Card className="text-center p-6">
-            <Award className="h-12 w-12 text-primary mx-auto mb-4" />
+            <FileText className="h-12 w-12 text-primary mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">Second Opinion</h3>
             <p className="text-muted-foreground mb-4">Get a second medical opinion from specialists</p>
             <Button variant="outline">Get Opinion</Button>
           </Card>
         </div>
       </div>
+
+      <CallNotification onJoinCall={handleJoinCall} />
     </div>
   );
 };

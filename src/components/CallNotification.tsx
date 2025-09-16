@@ -149,37 +149,45 @@ const CallNotification: React.FC<CallNotificationProps> = ({ onJoinCall }) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md mx-auto animate-in fade-in zoom-in duration-300">
-        <CardHeader className="text-center pb-4">
-          <Avatar className="w-20 h-20 mx-auto mb-4">
-            <AvatarFallback className="text-lg">
-              {incomingCall.caller_name?.charAt(0) || incomingCall.caller_email?.charAt(0) || 'D'}
-            </AvatarFallback>
-          </Avatar>
-          <CardTitle className="text-xl">Incoming Video Call</CardTitle>
-          <p className="text-muted-foreground">
-            {incomingCall.caller_name || incomingCall.caller_email}
-          </p>
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-center gap-4">
-            <Button
-              size="lg"
-              variant="destructive"
-              onClick={handleDeclineCall}
-              className="flex-1 h-14"
-            >
-              <PhoneOff className="w-5 h-5 mr-2" />
-              Decline
-            </Button>
-            <Button
-              size="lg"
-              onClick={handleAcceptCall}
-              className="flex-1 h-14 bg-green-600 hover:bg-green-700"
-            >
-              <Video className="w-5 h-5 mr-2" />
-              Accept
-            </Button>
+      <Card className="w-full max-w-sm mx-auto animate-in fade-in zoom-in duration-300 bg-white shadow-xl">
+        <CardContent className="p-6">
+          <div className="text-center">
+            <div className="mb-4 flex justify-center">
+              <div className="relative">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                  <Phone className="w-6 h-6 text-green-600" />
+                </div>
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
+              </div>
+            </div>
+            
+            <h3 className="text-lg font-semibold mb-1">Incoming Call</h3>
+            <p className="text-sm text-muted-foreground mb-1">Video consultation</p>
+            
+            <div className="mb-6">
+              <p className="font-semibold text-lg">{incomingCall.caller_name || 'User'}</p>
+              <p className="text-sm text-muted-foreground">{incomingCall.caller_email}</p>
+            </div>
+            
+            <div className="flex justify-center gap-4">
+              <Button
+                size="lg"
+                onClick={handleAcceptCall}
+                className="bg-green-600 hover:bg-green-700 text-white px-8 rounded-lg"
+              >
+                <Phone className="w-4 h-4 mr-2" />
+                Accept
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={handleDeclineCall}
+                className="border-red-200 text-red-600 hover:bg-red-50 px-6 rounded-lg"
+              >
+                <span className="mr-2">✕</span>
+                Decline
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
