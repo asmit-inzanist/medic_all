@@ -366,7 +366,6 @@ const Profile = () => {
               {/* Avatar and Basic Info */}
               <div className="text-center">
                 <Avatar className="h-24 w-24 mx-auto mb-4">
-                  <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" />
                   <AvatarFallback>{profileData.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                 </Avatar>
                 {isEditing && (
