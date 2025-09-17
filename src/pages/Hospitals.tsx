@@ -121,7 +121,7 @@ const Hospitals = () => {
                 <SelectValue placeholder="Specialty" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Specialties</SelectItem>
+                <SelectItem value="all">All Specialties</SelectItem>
                 {specialties.slice(1).map((specialty) => (
                   <SelectItem key={specialty} value={specialty}>
                     {specialty}
@@ -137,7 +137,7 @@ const Hospitals = () => {
                 <SelectValue placeholder="Hospital Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="general hospital">General Hospital</SelectItem>
                 <SelectItem value="specialty hospital">Specialty Hospital</SelectItem>
                 <SelectItem value="trauma center">Trauma Center</SelectItem>
