@@ -5,19 +5,42 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Star, MapPin, Clock, Phone, Calendar, MessageSquare, Users, FileText, Video, Shield, CheckCircle, Search, Filter } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Star, MapPin, Clock, Phone, Calendar, MessageSquare, Users, FileText, Video, Shield, CheckCircle, Search, Filter, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useDoctors } from '@/hooks/useDoctors';
+import { Doctor } from '@/types/doctor';
 import VideoCall from '@/components/VideoCall';
 
 const Doctors = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { doctors, loading, error } = useDoctors();
   const [searchTerm, setSearchTerm] = useState('');
-  const [callInitiated, setCallInitiated] = useState(false);
-  const [currentCall, setCurrentCall] = useState<{ roomId: string; doctorName: string } | null>(null);
+  const [selectedSpecialty, setSelectedSpecialty] = useState('all');
+  const [selectedAvailability, setSelectedAvailability] = useState('any');
+  const [sortBy, setSortBy] = useState('name');
   const [inVideoCall, setInVideoCall] = useState(false);
+  const [currentCall, setCurrentCall] = useState<{roomId: string, doctorName: string} | null>(null);
+  const [callInitiated, setCallInitiated] = useState(false);
+  const [contactPopup, setContactPopup] = useState<{show: boolean, doctorId: string, phone: string | null, name: string}>({
+    show: false,
+    doctorId: '',
+    phone: null,
+    name: ''
+  });
+
+  // Debug logging
+  useEffect(() => {
+    console.log('🏥 Doctors component state:', { 
+      doctorsCount: doctors.length, 
+      loading, 
+      error,
+      user: user?.email || 'Not logged in'
+    });
+  }, [doctors, loading, error, user]);
 
   // Listen for call status updates
   useEffect(() => {
@@ -66,36 +89,58 @@ const Doctors = () => {
     };
   }, [user, currentCall, toast]);
 
-  const doctors = [
-    {
-      id: 'hardcoded-doctor',
-      name: 'Dr. Bineet Kumar',
-      email: 'bineetgdsc@gmail.com',
-      specialty: 'General Physician',
-      rating: 4.9,
-      reviewCount: 324,
-      experience: '15+ years',
-      availability: 'Available Now',
-      location: 'MD, AIIMS Delhi',
-      image: '/placeholder.svg',
-      fee: 120,
-      responseTime: '< 1 hour',
-      languages: ['English', 'Hindi'],
-      patientsCount: 2500,
-      isOnline: true,
-      isVerified: true
-    },
-  ];
+  // Define Dr. Bineet Kumar (for testing) - always shows first
+  const drBineet = {
+    id: 'hardcoded-doctor',
+    name: 'Dr. Bineet Kumar',
+    email: 'bineetgdsc@gmail.com',
+    specialty: 'General Physician',
+    rating: 4.9,
+    reviewCount: 324,
+    experience: '15+ years',
+    availability: 'Available Now',
+    location: 'MD, AIIMS Delhi',
+    image: '/placeholder.svg',
+    fee: 120,
+    responseTime: '< 1 hour',
+    languages: ['English', 'Hindi'],
+    patientsCount: 2500,
+    isOnline: true,
+    isVerified: true,
+    phone: '+91-98765-43210' // Demo phone number
+  };
 
+  // Filter real doctors from Supabase
+  const filteredDoctors = doctors.filter((doctor: Doctor) => {
+    const matchesSearch = searchTerm === '' || 
+      doctor.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doctor.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doctor.clinic_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesSpecialty = selectedSpecialty === 'all' || selectedSpecialty === '' || 
+      doctor.department?.toLowerCase() === selectedSpecialty.toLowerCase();
+    
+    return matchesSearch && matchesSpecialty;
+  });
+
+  // Sort doctors based on selected criteria
+  const sortedDoctors = [...filteredDoctors].sort((a: Doctor, b: Doctor) => {
+    switch (sortBy) {
+      case 'experience':
+        return (b.experience || 0) - (a.experience || 0);
+      case 'price-low':
+        return (a.fees || 0) - (b.fees || 0);
+      case 'name':
+        return (a.name || '').localeCompare(b.name || '');
+      default:
+        return (a.name || '').localeCompare(b.name || '');
+    }
+  });
+
+  // Get unique specialties for filter dropdown
   const specialties = [
     'All Specialties',
-    'General Physician',
-    'Cardiologist',
-    'Dermatologist',
-    'Pediatrician',
-    'Orthopedist',
-    'Neurologist',
-    'Psychiatrist'
+    ...Array.from(new Set(doctors.map(d => d.department).filter(Boolean))).sort()
   ];
 
   const handleVideoCall = async (doctor: any) => {
@@ -210,6 +255,24 @@ const Doctors = () => {
     setCallInitiated(false);
   };
 
+  const handleContactDoctor = (doctor: any) => {
+    setContactPopup({
+      show: true,
+      doctorId: doctor.id,
+      phone: doctor.phone || null,
+      name: doctor.name
+    });
+  };
+
+  const closeContactPopup = () => {
+    setContactPopup({
+      show: false,
+      doctorId: '',
+      phone: null,
+      name: ''
+    });
+  };
+
   if (inVideoCall && currentCall) {
     return (
       <>
@@ -240,13 +303,13 @@ const Doctors = () => {
           </div>
           
           <div className="md:col-span-2">
-            <Select>
+            <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
               <SelectTrigger>
                 <SelectValue placeholder="Specialty" />
               </SelectTrigger>
               <SelectContent>
                 {specialties.map((specialty) => (
-                  <SelectItem key={specialty} value={specialty.toLowerCase()}>
+                  <SelectItem key={specialty} value={specialty === 'All Specialties' ? 'all' : specialty}>
                     {specialty}
                   </SelectItem>
                 ))}
@@ -255,7 +318,7 @@ const Doctors = () => {
           </div>
 
           <div className="md:col-span-2">
-            <Select>
+            <Select value={selectedAvailability} onValueChange={setSelectedAvailability}>
               <SelectTrigger>
                 <SelectValue placeholder="Availability" />
               </SelectTrigger>
@@ -269,15 +332,14 @@ const Doctors = () => {
           </div>
 
           <div className="md:col-span-2">
-            <Select>
+            <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger>
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="rating">Highest Rated</SelectItem>
+                <SelectItem value="name">Name (A-Z)</SelectItem>
                 <SelectItem value="experience">Most Experienced</SelectItem>
                 <SelectItem value="price-low">Lowest Fee</SelectItem>
-                <SelectItem value="availability">Earliest Available</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -290,94 +352,179 @@ const Doctors = () => {
           </div>
         </div>
 
+        {/* Loading and Error States */}
+        {loading && (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">Loading doctors...</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="text-center py-8">
+            <p className="text-red-500">Error loading doctors: {error}</p>
+          </div>
+        )}
+
         {/* Doctor Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
-          {doctors.map((doctor) => (
+          {/* Dr. Bineet Kumar - Always first (for testing) */}
+          <Card key={drBineet.id} className="p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-start gap-4">
+              <div className="relative">
+                <Avatar className="w-20 h-20">
+                  <AvatarImage src={drBineet.image} alt={drBineet.name} />
+                  <AvatarFallback className="text-lg font-semibold bg-blue-100 text-blue-600">
+                    {drBineet.name.split(' ').map(n => n[0]).join('')}
+                  </AvatarFallback>
+                </Avatar>
+                {drBineet.isOnline && (
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-3 border-white flex items-center justify-center">
+                    <div className="w-3 h-3 bg-white rounded-full"></div>
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-xl font-semibold text-foreground">{drBineet.name}</h3>
+                  {drBineet.isVerified && (
+                    <div className="flex items-center gap-1">
+                      <Shield className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm text-blue-600 font-medium">Verified</span>
+                    </div>
+                  )}
+                  {drBineet.isOnline && (
+                    <Badge className="bg-green-500 hover:bg-green-600 text-white">
+                      Online
+                    </Badge>
+                  )}
+                </div>
+                
+                <p className="text-blue-600 font-medium mb-2">{drBineet.specialty}</p>
+                
+                <div className="flex items-center gap-1 mb-2">
+                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  <span className="font-semibold">{drBineet.rating}</span>
+                  <span className="text-muted-foreground">({drBineet.reviewCount} reviews)</span>
+                </div>
+                
+                <p className="text-muted-foreground mb-2">{drBineet.location}</p>
+                <p className="text-muted-foreground mb-4">{drBineet.experience}</p>
+                
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-blue-600">${drBineet.fee}</div>
+                    <div className="text-xs text-muted-foreground">Consultation Fee</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-blue-600">{drBineet.responseTime}</div>
+                    <div className="text-xs text-muted-foreground">Response Time</div>
+                  </div>
+                </div>
+                
+                <div className="mb-4">
+                  <span className="text-sm text-muted-foreground">Languages: </span>
+                  <span className="text-sm">{drBineet.languages.join(', ')}</span>
+                </div>
+                
+                <div className="flex items-center gap-2 mb-4">
+                  <Clock className="w-4 h-4 text-green-600" />
+                  <span className="text-sm text-green-600 font-medium">Next Available: {drBineet.availability}</span>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-2">
+                  <Button 
+                    onClick={() => handleVideoCall(drBineet)} 
+                    className="bg-blue-600 hover:bg-blue-700"
+                    disabled={callInitiated}
+                  >
+                    <Video className="mr-1 h-4 w-4" />
+                    {callInitiated ? 'Calling...' : 'Call'}
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => handleContactDoctor(drBineet)}
+                  >
+                    <Phone className="mr-1 h-4 w-4" />
+                    Contact
+                  </Button>
+                  <Button variant="outline">
+                    <Calendar className="mr-1 h-4 w-4" />
+                    Schedule
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Real Doctors from Supabase */}
+          {sortedDoctors.map((doctor: Doctor) => (
             <Card key={doctor.id} className="p-6 hover:shadow-lg transition-shadow">
               <div className="flex items-start gap-4">
                 <div className="relative">
                   <Avatar className="w-20 h-20">
-                    <AvatarImage src={doctor.image} alt={doctor.name} />
+                    <AvatarImage src={doctor.image_url || undefined} alt={doctor.name} />
                     <AvatarFallback className="text-lg font-semibold bg-blue-100 text-blue-600">
                       {doctor.name.split(' ').map(n => n[0]).join('')}
                     </AvatarFallback>
                   </Avatar>
-                  {doctor.isOnline && (
-                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-3 border-white flex items-center justify-center">
-                      <div className="w-3 h-3 bg-white rounded-full"></div>
-                    </div>
-                  )}
                 </div>
                 
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="text-xl font-semibold text-foreground">{doctor.name}</h3>
-                    {doctor.isVerified && (
-                      <div className="flex items-center gap-1">
-                        <Shield className="w-4 h-4 text-blue-600" />
-                        <span className="text-sm text-blue-600 font-medium">Verified</span>
-                      </div>
-                    )}
-                    {doctor.isOnline && (
-                      <Badge className="bg-green-500 hover:bg-green-600 text-white">
-                        Online
-                      </Badge>
-                    )}
+                    <div className="flex items-center gap-1">
+                      <Shield className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm text-blue-600 font-medium">Verified</span>
+                    </div>
                   </div>
                   
-                  <p className="text-blue-600 font-medium mb-2">{doctor.specialty}</p>
+                  <p className="text-blue-600 font-medium mb-2">{doctor.department}</p>
                   
                   <div className="flex items-center gap-1 mb-2">
                     <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-semibold">{doctor.rating}</span>
-                    <span className="text-muted-foreground">({doctor.reviewCount} reviews)</span>
+                    <span className="font-semibold">4.5</span>
+                    <span className="text-muted-foreground">(50+ reviews)</span>
                   </div>
                   
-                  <p className="text-muted-foreground mb-2">{doctor.location}</p>
-                  <p className="text-muted-foreground mb-4">{doctor.experience}</p>
+                  <p className="text-muted-foreground mb-2">{doctor.area}</p>
+                  <p className="text-muted-foreground mb-2">{doctor.clinic_name}</p>
+                  <p className="text-muted-foreground mb-4">{doctor.experience}+ years experience</p>
                   
-                  <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div className="grid grid-cols-2 gap-4 mb-4">
                     <div className="text-center">
-                      <div className="text-xl font-bold text-blue-600">{doctor.patientsCount.toLocaleString()}+</div>
-                      <div className="text-xs text-muted-foreground">Patients Treated</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-xl font-bold text-blue-600">${doctor.fee}</div>
+                      <div className="text-xl font-bold text-blue-600">
+                        {doctor.fees === 0 ? 'Free' : `₹${doctor.fees}`}
+                      </div>
                       <div className="text-xs text-muted-foreground">Consultation Fee</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-xl font-bold text-blue-600">{doctor.responseTime}</div>
+                      <div className="text-xl font-bold text-blue-600">1 hour</div>
                       <div className="text-xs text-muted-foreground">Response Time</div>
                     </div>
                   </div>
                   
                   <div className="mb-4">
-                    <span className="text-sm font-medium text-muted-foreground">Languages: </span>
-                    {doctor.languages.map((lang: string, index: number) => (
-                      <span key={lang} className="text-sm mr-3 last:mr-0">
-                        {lang}
-                      </span>
-                    ))}
+                    <span className="text-sm text-muted-foreground">Languages: </span>
+                    <span className="text-sm">English, Hindi</span>
                   </div>
                   
                   <div className="flex items-center gap-2 mb-4">
                     <Clock className="w-4 h-4 text-green-600" />
-                    <span className="text-sm">
-                      <span className="text-muted-foreground">Next Available: </span>
-                      <span className="text-green-600 font-medium">{doctor.availability}</span>
-                    </span>
+                    <span className="text-sm text-green-600 font-medium">Available Today</span>
                   </div>
                   
-                  <div className="flex gap-3">
+                  <div className="flex gap-2">
                     <Button 
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-                      onClick={() => handleVideoCall(doctor)}
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => handleContactDoctor(doctor)}
                     >
-                      <Phone className="w-4 h-4 mr-2" />
-                      Call Now
+                      <Phone className="mr-2 h-4 w-4" />
+                      {doctor.contact_type || 'Contact'}
                     </Button>
                     <Button variant="outline" className="flex-1">
-                      <Calendar className="w-4 h-4 mr-2" />
+                      <Calendar className="mr-2 h-4 w-4" />
                       Schedule
                     </Button>
                   </div>
@@ -411,6 +558,55 @@ const Doctors = () => {
           </Card>
         </div>
       </div>
+
+      {/* Contact Popup Dialog */}
+      <Dialog open={contactPopup.show} onOpenChange={closeContactPopup}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Phone className="h-5 w-5 text-blue-600" />
+              Contact {contactPopup.name}
+            </DialogTitle>
+            <DialogDescription>
+              Doctor's contact information
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-full">
+                  <Phone className="h-4 w-4 text-blue-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-sm text-gray-600">Phone Number</p>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {contactPopup.phone || 'No info available'}
+                  </p>
+                </div>
+              </div>
+              {contactPopup.phone && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    window.open(`tel:${contactPopup.phone}`, '_self');
+                  }}
+                >
+                  <Phone className="h-4 w-4 mr-1" />
+                  Call
+                </Button>
+              )}
+            </div>
+            
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={closeContactPopup}>
+                Close
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );

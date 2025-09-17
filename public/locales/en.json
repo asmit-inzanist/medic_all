@@ -63,7 +63,7 @@
     "subtitle": "Powered by Google Gemini - Your 24/7 healthcare companion",
     "disclaimer": "Medical Disclaimer",
     "disclaimerText": "This AI assistant provides general health information only and is not a substitute for professional medical advice, diagnosis, or treatment. Always consult with qualified healthcare providers for medical concerns.",
-    "initialMessage": "Hello! I'm your AI Health Assistant powered by Google Gemini. I can help you with symptom analysis, health advice, and medical information. Please note that I'm not a replacement for professional medical care. How can I assist you today?",
+    "initialMessage": "Hello! I'm your AI Health Assistant. I can help you with symptom analysis, health advice, and medical information. Please note that I'm not a replacement for professional medical care. How can I assist you today?",
     "placeholder": "Type your health question or describe your symptoms...",
     "suggestions": {
       "headache": "I have a headache",
