@@ -149,14 +149,21 @@ const Doctors = () => {
       }
 
       console.log('Using profile:', profileData);
+      
+      // ALWAYS use hardcoded bineet user ID when calling bineetgdsc@gmail.com
+      const receiverId = doctor.email === 'bineetgdsc@gmail.com' 
+        ? 'a10571ca-baca-41c9-aa08-e955342ae915'  // Bineet's hardcoded user ID
+        : profileData.user_id;
+      
       console.log('Creating call record for:', doctor.email);
+      console.log('📞 Caller ID:', user.id, '📞 Receiver ID:', receiverId);
 
       // Create the call record in the database
       const { data: callData, error: callError } = await supabase
         .from('video_calls')
         .insert({
           caller_id: user.id,
-          receiver_id: profileData.user_id,
+          receiver_id: receiverId,  // Use hardcoded bineet ID for bineetgdsc@gmail.com
           caller_email: user.email || '',
           receiver_email: doctor.email,
           caller_name: user.user_metadata?.name || user.email || '',

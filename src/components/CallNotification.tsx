@@ -30,6 +30,17 @@ const CallNotification: React.FC<CallNotificationProps> = ({ onJoinCall }) => {
     if (!user) return;
 
     console.log('🔔 Setting up call notifications for user:', user.email);
+    console.log('🔔 User ID for filtering:', user.id);
+
+    // Test channel - listen to ALL video_calls changes
+    const testChannel = supabase
+      .channel('test-all-calls')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'video_calls' }, (payload) => {
+        console.log('🔔 ✅ ANY video_calls change detected:', payload);
+      })
+      .subscribe((status) => {
+        console.log('🔔 Test channel status:', status);
+      });
 
     // Create a channel for incoming calls
     const channel = supabase
@@ -65,6 +76,7 @@ const CallNotification: React.FC<CallNotificationProps> = ({ onJoinCall }) => {
     return () => {
       console.log('🔔 Cleaning up call notifications');
       supabase.removeChannel(channel);
+      supabase.removeChannel(testChannel);
     };
   }, [user, toast]);
 
