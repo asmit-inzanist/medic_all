@@ -9,7 +9,6 @@ import { Star, MapPin, Clock, Phone, Calendar, MessageSquare, Users, FileText, V
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import CallNotification from '@/components/CallNotification';
 import VideoCall from '@/components/VideoCall';
 
 const Doctors = () => {
@@ -215,7 +214,6 @@ const Doctors = () => {
     return (
       <>
         <VideoCall roomID={currentCall.roomId} onLeaveCall={handleLeaveCall} />
-        <CallNotification onJoinCall={handleJoinCall} isInCall={true} />
       </>
     );
   }
@@ -414,7 +412,6 @@ const Doctors = () => {
         </div>
       </div>
 
-      <CallNotification onJoinCall={handleJoinCall} isInCall={inVideoCall} />
     </div>
   );
 };

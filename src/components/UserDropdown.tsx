@@ -19,19 +19,69 @@ const UserDropdown = () => {
   const { toast } = useToast();
 
   const handleSignOut = async () => {
-    const { error } = await signOut();
-    if (error) {
-      toast({
-        variant: "destructive",
-        title: "Sign out failed",
-        description: error.message,
-      });
-    } else {
+    try {
+      console.log('🚪 Attempting to sign out...');
+      
+      // Add loading state to prevent multiple clicks
+      const { error } = await signOut();
+      
+      if (error) {
+        console.error('❌ Sign out error:', error);
+        
+        // Handle specific error types
+        if (error.message.includes('network') || error.message.includes('fetch')) {
+          toast({
+            variant: "destructive",
+            title: "Network Error",
+            description: "Please check your internet connection and try again.",
+          });
+        } else if (error.message.includes('session')) {
+          toast({
+            variant: "destructive", 
+            title: "Session Error",
+            description: "Your session has expired. Refreshing the page...",
+          });
+          // Force refresh to clear any corrupted state
+          setTimeout(() => window.location.reload(), 2000);
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Sign out failed",
+            description: error.message || "An unexpected error occurred",
+          });
+        }
+        
+        // If sign out fails, try to clear local storage as fallback
+        console.log('🧹 Clearing local storage as fallback...');
+        localStorage.removeItem('supabase.auth.token');
+        localStorage.clear();
+        
+        // Force navigation to home and refresh
+        navigate('/');
+        window.location.reload();
+        
+      } else {
+        console.log('✅ Sign out successful');
+        toast({
+          title: "Signed out",
+          description: "You've been signed out successfully.",
+        });
+        navigate('/');
+      }
+    } catch (unexpectedError) {
+      console.error('💥 Unexpected sign out error:', unexpectedError);
+      
+      // Force sign out by clearing everything
+      localStorage.clear();
+      sessionStorage.clear();
+      
       toast({
         title: "Signed out",
-        description: "You've been signed out successfully.",
+        description: "Session cleared successfully.",
       });
+      
       navigate('/');
+      window.location.reload();
     }
   };
 

@@ -3,9 +3,12 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useState } from "react";
 import Header from "./components/Header";
 import ProtectedRoute from "./components/ProtectedRoute";
 import CallNotification from "./components/CallNotification";
+import VideoCall from "./components/VideoCall";
+import AuthRecovery from "./components/AuthRecovery";
 import Home from "./pages/Home";
 import Medicine from "./pages/Medicine";
 import Hospitals from "./pages/Hospitals";
@@ -20,12 +23,32 @@ const queryClient = new QueryClient();
 
 const AppContent = () => {
   const { user } = useAuth();
+  const [inVideoCall, setInVideoCall] = useState(false);
+  const [currentCall, setCurrentCall] = useState<{roomId: string, doctorName: string} | null>(null);
 
   const handleJoinCall = (roomId: string) => {
-    // Navigate to video call - we could add a dedicated video call page later
-    // For now, this will be handled by the Doctors page
-    window.location.href = '/doctors';
+    console.log('🎬 Joining video call with room ID:', roomId);
+    
+    // Set the call state to show the video call interface
+    setCurrentCall({ roomId, doctorName: 'Video Consultation' });
+    setInVideoCall(true);
   };
+
+  const handleLeaveCall = () => {
+    console.log('🚪 Leaving video call');
+    setInVideoCall(false);
+    setCurrentCall(null);
+  };
+
+  // If user is in a video call, show the video call interface
+  if (inVideoCall && currentCall) {
+    return (
+      <div className="min-h-screen bg-background">
+        <VideoCall roomID={currentCall.roomId} onLeaveCall={handleLeaveCall} />
+        {user && <CallNotification onJoinCall={handleJoinCall} isInCall={true} />}
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -79,6 +102,9 @@ const AppContent = () => {
       
       {/* Global CallNotification - active for all authenticated users */}
       {user && <CallNotification onJoinCall={handleJoinCall} isInCall={false} />}
+      
+      {/* Auth Recovery for session issues */}
+      <AuthRecovery />
     </div>
   );
 };
