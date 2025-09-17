@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Search, Filter, MapPin, Star, Bed, Clock, Phone, Calendar } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, Filter, MapPin, Star, Navigation, Clock, Phone, Calendar, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,60 +11,83 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const Hospitals = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [hospitals, setHospitals] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [specialty, setSpecialty] = useState('');
+  const [hospitalType, setHospitalType] = useState('');
+  const [sortBy, setSortBy] = useState('');
 
-  const hospitals = [
-    {
-      id: 1,
-      name: 'Metropolitan Medical Center',
-      type: 'General Hospital',
-      rating: 4.8,
-      reviews: 1234,
-      address: '123 Health Street, Downtown',
-      distance: '2.3 miles',
-      availableBeds: 45,
-      totalBeds: 200,
-      emergencyWait: '15 mins',
-      specialties: ['Cardiology', 'Neurology', 'Oncology', 'Emergency'],
-      image: 'https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=400&h=250&fit=crop',
-      phone: '+1 (555) 123-4567',
-      insurance: ['Blue Cross', 'Aetna', 'Medicare']
-    },
-    {
-      id: 2,
-      name: 'St. Mary\'s Healthcare',
-      type: 'Specialty Hospital',
-      rating: 4.9,
-      reviews: 892,
-      address: '456 Wellness Ave, Midtown',
-      distance: '1.8 miles',
-      availableBeds: 12,
-      totalBeds: 150,
-      emergencyWait: '8 mins',
-      specialties: ['Pediatrics', 'Maternity', 'Surgery', 'ICU'],
-      image: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&h=250&fit=crop',
-      phone: '+1 (555) 234-5678',
-      insurance: ['Cigna', 'UnitedHealth', 'Medicare']
-    },
-    {
-      id: 3,
-      name: 'Regional Trauma Center',
-      type: 'Trauma Center',
-      rating: 4.7,
-      reviews: 567,
-      address: '789 Emergency Blvd, North Side',
-      distance: '4.1 miles',
-      availableBeds: 23,
-      totalBeds: 180,
-      emergencyWait: '5 mins',
-      specialties: ['Trauma', 'Emergency', 'Critical Care', 'Surgery'],
-      image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=250&fit=crop',
-      phone: '+1 (555) 345-6789',
-      insurance: ['All Major Insurance', 'Emergency Coverage']
+  useEffect(() => {
+    fetchHospitals();
+  }, []);
+
+  const fetchHospitals = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('hospitals')
+        .select('*')
+        .order('name');
+
+      if (error) throw error;
+      
+      setHospitals(data || []);
+    } catch (err) {
+      console.error('Error fetching hospitals:', err);
+      setError('Failed to load hospitals. Please try again.');
+      toast.error('Failed to load hospitals');
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  const openGoogleMaps = (address: string, name: string) => {
+    const encodedAddress = encodeURIComponent(`${name}, ${address}`);
+    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+    window.open(googleMapsUrl, '_blank');
+  };
+
+  const makePhoneCall = (phone: string) => {
+    if (phone) {
+      window.open(`tel:${phone}`, '_self');
+    }
+  };
+
+  // Filter hospitals based on search term, specialty, and type
+  const filteredHospitals = hospitals.filter(hospital => {
+    const matchesSearch = hospital.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         hospital.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (hospital.specialties && hospital.specialties.some((spec: string) => 
+                           spec.toLowerCase().includes(searchTerm.toLowerCase())));
+    
+    const matchesSpecialty = !specialty || specialty === 'all' || 
+                            (hospital.specialties && hospital.specialties.includes(specialty));
+    
+    const matchesType = !hospitalType || hospitalType === 'all' || 
+                       hospital.type.toLowerCase() === hospitalType.toLowerCase();
+
+    return matchesSearch && matchesSpecialty && matchesType;
+  });
+
+  // Sort hospitals
+  const sortedHospitals = [...filteredHospitals].sort((a, b) => {
+    switch (sortBy) {
+      case 'rating':
+        return (b.rating || 0) - (a.rating || 0);
+      case 'availability':
+        return (b.available_beds || 0) - (a.available_beds || 0);
+      case 'name':
+        return a.name.localeCompare(b.name);
+      default:
+        return a.name.localeCompare(b.name);
+    }
+  });
 
   const specialties = [
     'All Specialties', 'Cardiology', 'Neurology', 'Oncology', 'Pediatrics', 
@@ -93,13 +116,14 @@ const Hospitals = () => {
           </div>
           
           <div className="md:col-span-2">
-            <Select>
+            <Select value={specialty} onValueChange={setSpecialty}>
               <SelectTrigger>
                 <SelectValue placeholder="Specialty" />
               </SelectTrigger>
               <SelectContent>
-                {specialties.map((specialty) => (
-                  <SelectItem key={specialty} value={specialty.toLowerCase()}>
+                <SelectItem value="">All Specialties</SelectItem>
+                {specialties.slice(1).map((specialty) => (
+                  <SelectItem key={specialty} value={specialty}>
                     {specialty}
                   </SelectItem>
                 ))}
@@ -108,29 +132,29 @@ const Hospitals = () => {
           </div>
 
           <div className="md:col-span-2">
-            <Select>
+            <Select value={hospitalType} onValueChange={setHospitalType}>
               <SelectTrigger>
                 <SelectValue placeholder="Hospital Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="general">General Hospital</SelectItem>
-                <SelectItem value="specialty">Specialty Hospital</SelectItem>
-                <SelectItem value="trauma">Trauma Center</SelectItem>
+                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="general hospital">General Hospital</SelectItem>
+                <SelectItem value="specialty hospital">Specialty Hospital</SelectItem>
+                <SelectItem value="trauma center">Trauma Center</SelectItem>
+                <SelectItem value="medical center">Medical Center</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="md:col-span-2">
-            <Select>
+            <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger>
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="distance">Nearest First</SelectItem>
+                <SelectItem value="name">Name A-Z</SelectItem>
                 <SelectItem value="rating">Highest Rated</SelectItem>
                 <SelectItem value="availability">Most Available</SelectItem>
-                <SelectItem value="wait-time">Shortest Wait</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -162,18 +186,36 @@ const Hospitals = () => {
         </div>
 
         {/* Hospital Cards */}
-        <div className="space-y-6">
-          {hospitals.map((hospital) => (
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <span className="ml-2 text-muted-foreground">Loading hospitals...</span>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-destructive">{error}</p>
+            <Button onClick={fetchHospitals} className="mt-4">
+              Try Again
+            </Button>
+          </div>
+        ) : sortedHospitals.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No hospitals found matching your criteria.</p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {sortedHospitals.map((hospital) => (
             <Card key={hospital.id} className="overflow-hidden hover:shadow-hover transition-all duration-300">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
                 {/* Image */}
                 <div className="lg:col-span-4">
-                  <div className="h-64 lg:h-full bg-gradient-card overflow-hidden">
-                    <img 
-                      src={hospital.image} 
-                      alt={hospital.name}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                    />
+                  <div className="h-64 lg:h-full bg-gradient-primary overflow-hidden">
+                    <div className="w-full h-full bg-primary/20 flex items-center justify-center">
+                      <div className="text-center">
+                        <MapPin className="h-12 w-12 text-primary mx-auto mb-2" />
+                        <p className="text-primary font-medium">{hospital.name}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -190,70 +232,111 @@ const Hospitals = () => {
                       
                       <div className="flex items-center mb-2">
                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
-                        <span className="font-medium mr-2">{hospital.rating}</span>
+                        <span className="font-medium mr-2">{hospital.rating || 'N/A'}</span>
                         <span className="text-sm text-muted-foreground">
-                          ({hospital.reviews} reviews)
+                          ({hospital.review_count || 0} reviews)
                         </span>
                       </div>
 
                       <div className="flex items-center text-muted-foreground mb-3">
                         <MapPin className="h-4 w-4 mr-1" />
-                        <span className="text-sm">{hospital.address} • {hospital.distance}</span>
+                        <span className="text-sm">{hospital.address}</span>
                       </div>
 
+                      {/* Phone */}
+                      {hospital.phone && (
+                        <div className="flex items-center text-muted-foreground mb-3">
+                          <Phone className="h-4 w-4 mr-1" />
+                          <span className="text-sm">{hospital.phone}</span>
+                        </div>
+                      )}
+
+                      {/* Operating Hours */}
+                      {hospital.operating_hours && (
+                        <div className="flex items-center text-muted-foreground mb-3">
+                          <Clock className="h-4 w-4 mr-1" />
+                          <span className="text-sm">
+                            {hospital.is_24_hours ? '24/7 Open' : hospital.operating_hours}
+                          </span>
+                        </div>
+                      )}
+
                       {/* Specialties */}
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {hospital.specialties.slice(0, 4).map((specialty, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {specialty}
-                          </Badge>
-                        ))}
-                        {hospital.specialties.length > 4 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{hospital.specialties.length - 4} more
-                          </Badge>
-                        )}
-                      </div>
+                      {hospital.specialties && hospital.specialties.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {hospital.specialties.slice(0, 4).map((specialty: string, index: number) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {specialty}
+                            </Badge>
+                          ))}
+                          {hospital.specialties.length > 4 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{hospital.specialties.length - 4} more
+                            </Badge>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Quick Stats */}
                     <div className="flex lg:flex-col gap-4 lg:gap-2 lg:text-right">
-                      <div className="text-center lg:text-right">
-                        <div className="text-2xl font-bold text-success">{hospital.availableBeds}</div>
-                        <div className="text-xs text-muted-foreground">Beds Available</div>
-                        <div className="text-xs text-muted-foreground">of {hospital.totalBeds} total</div>
-                      </div>
+                      {hospital.available_beds !== null && hospital.total_beds !== null && (
+                        <div className="text-center lg:text-right">
+                          <div className="text-2xl font-bold text-success">{hospital.available_beds}</div>
+                          <div className="text-xs text-muted-foreground">Beds Available</div>
+                          <div className="text-xs text-muted-foreground">of {hospital.total_beds} total</div>
+                        </div>
+                      )}
                       
-                      <div className="text-center lg:text-right">
-                        <div className="text-lg font-semibold text-primary">{hospital.emergencyWait}</div>
-                        <div className="text-xs text-muted-foreground">Avg. Wait Time</div>
-                      </div>
+                      {hospital.emergency_beds !== null && (
+                        <div className="text-center lg:text-right">
+                          <div className="text-lg font-semibold text-primary">{hospital.emergency_beds}</div>
+                          <div className="text-xs text-muted-foreground">Emergency Beds</div>
+                        </div>
+                      )}
+
+                      {hospital.accepts_emergency && (
+                        <div className="text-center lg:text-right">
+                          <Badge variant="success" className="text-xs">
+                            Emergency Care
+                          </Badge>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   {/* Insurance */}
-                  <div className="mb-4">
-                    <div className="text-sm text-muted-foreground mb-1">Accepted Insurance:</div>
-                    <div className="flex flex-wrap gap-1">
-                      {hospital.insurance.map((ins, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {ins}
-                        </Badge>
-                      ))}
+                  {hospital.insurance_accepted && hospital.insurance_accepted.length > 0 && (
+                    <div className="mb-4">
+                      <div className="text-sm text-muted-foreground mb-1">Accepted Insurance:</div>
+                      <div className="flex flex-wrap gap-1">
+                        {hospital.insurance_accepted.map((ins: string, index: number) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {ins}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Actions */}
                   <div className="flex flex-col sm:flex-row gap-3">
-                    <Button className="flex-1">
-                      <Bed className="mr-2 h-4 w-4" />
-                      Book Bed
+                    <Button 
+                      className="flex-1"
+                      onClick={() => openGoogleMaps(hospital.address, hospital.name)}
+                    >
+                      <Navigation className="mr-2 h-4 w-4" />
+                      Get Directions
                     </Button>
                     <Button variant="outline" className="flex-1">
                       <Calendar className="mr-2 h-4 w-4" />
                       Schedule Visit
                     </Button>
-                    <Button variant="outline">
+                    <Button 
+                      variant="outline"
+                      onClick={() => makePhoneCall(hospital.phone)}
+                      disabled={!hospital.phone}
+                    >
                       <Phone className="mr-2 h-4 w-4" />
                       Call
                     </Button>
@@ -261,8 +344,9 @@ const Hospitals = () => {
                 </div>
               </div>
             </Card>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Quick Actions */}
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -281,10 +365,10 @@ const Hospitals = () => {
           </Card>
 
           <Card className="text-center p-6">
-            <Bed className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h3 className="text-lg font-semibly mb-2">Bed Alerts</h3>
-            <p className="text-muted-foreground mb-4">Get notified when beds become available</p>
-            <Button variant="outline">Set Alert</Button>
+            <Navigation className="h-12 w-12 text-primary mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Navigation</h3>
+            <p className="text-muted-foreground mb-4">Get directions to any hospital quickly</p>
+            <Button variant="outline">Find Routes</Button>
           </Card>
         </div>
       </div>
