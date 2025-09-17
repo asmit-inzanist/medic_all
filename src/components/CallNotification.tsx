@@ -19,9 +19,10 @@ interface CallData {
 
 interface CallNotificationProps {
   onJoinCall?: (roomId: string) => void;
+  isInCall?: boolean;
 }
 
-const CallNotification: React.FC<CallNotificationProps> = ({ onJoinCall }) => {
+const CallNotification: React.FC<CallNotificationProps> = ({ onJoinCall, isInCall = false }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [incomingCall, setIncomingCall] = useState<CallData | null>(null);
@@ -74,13 +75,19 @@ const CallNotification: React.FC<CallNotificationProps> = ({ onJoinCall }) => {
           
           if (call.status === 'ringing') {
             console.log('📞 Showing call popup for:', call.caller_email);
-            setIncomingCall(call);
             
-            toast({
-              title: "Incoming Video Call",
-              description: `${call.caller_name || call.caller_email} is calling`,
-              duration: 8000,
-            });
+            // Don't show popup if already in a call
+            if (!isInCall) {
+              setIncomingCall(call);
+              
+              toast({
+                title: "Incoming Video Call",
+                description: `${call.caller_name || call.caller_email} is calling`,
+                duration: 8000,
+              });
+            } else {
+              console.log('📞 Ignoring call - already in a call');
+            }
           }
         }
       )
@@ -151,7 +158,7 @@ const CallNotification: React.FC<CallNotificationProps> = ({ onJoinCall }) => {
     }
   };
 
-  if (!incomingCall) return null;
+  if (!incomingCall || isInCall) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">

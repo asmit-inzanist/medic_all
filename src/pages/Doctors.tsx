@@ -212,7 +212,12 @@ const Doctors = () => {
   };
 
   if (inVideoCall && currentCall) {
-    return <VideoCall roomID={currentCall.roomId} onLeaveCall={handleLeaveCall} />;
+    return (
+      <>
+        <VideoCall roomID={currentCall.roomId} onLeaveCall={handleLeaveCall} />
+        <CallNotification onJoinCall={handleJoinCall} isInCall={true} />
+      </>
+    );
   }
 
   return (
@@ -409,7 +414,7 @@ const Doctors = () => {
         </div>
       </div>
 
-      <CallNotification onJoinCall={handleJoinCall} />
+      <CallNotification onJoinCall={handleJoinCall} isInCall={inVideoCall} />
     </div>
   );
 };
