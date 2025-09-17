@@ -290,15 +290,17 @@ const MedicalDocumentsManager = () => {
               <p className="text-sm text-muted-foreground">Upload your first medical document to get started</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="space-y-4">
               {documents.map((doc) => (
-                <Card key={doc.id} className="relative">
+                <Card key={doc.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-4">
-                    <div className="flex items-center space-x-3">
-                      {getDocumentIcon(doc.mime_type)}
+                    <div className="flex items-start space-x-4">
+                      <div className="flex-shrink-0">
+                        {getDocumentIcon(doc.mime_type)}
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{doc.document_name}</p>
-                        <div className="flex items-center space-x-2 mt-1">
+                        <h4 className="font-medium text-sm leading-5 truncate">{doc.document_name}</h4>
+                        <div className="flex items-center space-x-2 mt-2">
                           <Badge variant="secondary" className="text-xs">
                             {DOCUMENT_TYPES.find(t => t.value === doc.document_type)?.label || doc.document_type}
                           </Badge>
@@ -310,45 +312,43 @@ const MedicalDocumentsManager = () => {
                           {new Date(doc.upload_date).toLocaleDateString()}
                         </p>
                         {doc.description && (
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                          <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
                             {doc.description}
                           </p>
                         )}
                       </div>
-                    </div>
-
-                    <div className="flex justify-between mt-3">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => downloadDocument(doc)}
-                      >
-                        <Download className="h-3 w-3 mr-1" />
-                        Download
-                      </Button>
-                      
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm" className="text-destructive">
-                            <Trash2 className="h-3 w-3 mr-1" />
-                            Delete
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Document</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete "{doc.document_name}"? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => deleteDocument(doc.id)}>
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                      <div className="flex-shrink-0 flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => downloadDocument(doc)}
+                          className="h-8 px-2"
+                        >
+                          <Download className="h-3 w-3" />
+                        </Button>
+                        
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" size="sm" className="text-destructive h-8 px-2">
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Document</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{doc.document_name}"? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => deleteDocument(doc.id)}>
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

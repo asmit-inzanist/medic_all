@@ -13,7 +13,11 @@ import {
   Bell,
   Download,
   Upload,
-  Folder
+  Folder,
+  UserPlus,
+  Trash2,
+  Phone,
+  Mail
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,16 +35,25 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
+import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import MedicalDocumentsManager from '@/components/MedicalDocumentsManager';
+import { AddFamilyMemberDialog } from '@/components/AddFamilyMemberDialog';
+import { EditFamilyMemberDialog } from '@/components/EditFamilyMemberDialog';
+import { CreateFamilyMemberData, FamilyMember, UpdateFamilyMemberData } from '@/types/familyMember';
+import { exportMedicalRecords } from '@/lib/medicalRecordsExporter';
 
 const Profile = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { familyMembers, loading: familyLoading, createFamilyMember, updateFamilyMember, deleteFamilyMember } = useFamilyMembers();
   const [editHealth, setEditHealth] = useState(false);
   const [editHistory, setEditHistory] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showAddMemberDialog, setShowAddMemberDialog] = useState(false);
+  const [showEditMemberDialog, setShowEditMemberDialog] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<FamilyMember | null>(null);
 
   const handleHealthEdit = () => setEditHealth(true);
   const handleHealthSave = async () => {
@@ -262,26 +275,57 @@ const Profile = () => {
     }
   ];
 
-  const familyMembers = [
-    {
-      id: 1,
-      name: 'Jane Doe',
-      relationship: 'Spouse',
-      age: 28,
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616c28ca656?w=150&h=150&fit=crop&crop=face'
-    },
-    {
-      id: 2,
-      name: 'Emma Doe',
-      relationship: 'Daughter',
-      age: 8,
-      avatar: 'https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=150&h=150&fit=crop&crop=face'
+  // Handle adding new family member
+  const handleAddFamilyMember = async (memberData: CreateFamilyMemberData) => {
+    await createFamilyMember(memberData);
+  };
+
+  // Handle editing family member
+  const handleEditFamilyMember = (member: FamilyMember) => {
+    setSelectedMember(member);
+    setShowEditMemberDialog(true);
+  };
+
+  // Handle updating family member
+  const handleUpdateFamilyMember = async (memberData: UpdateFamilyMemberData) => {
+    await updateFamilyMember(memberData);
+  };
+
+  // Handle deleting family member
+  const handleDeleteFamilyMember = async (memberId: string) => {
+    if (confirm('Are you sure you want to delete this family member?')) {
+      await deleteFamilyMember(memberId);
     }
-  ];
+  };
 
   const handleSave = () => {
     setIsEditing(false);
     // Here you would typically save to a backend
+  };
+
+  const handleExportMedicalRecords = async () => {
+    try {
+      toast.success('Generating your medical records export...');
+      
+      // Create user profile object from current data
+      const userProfile = {
+        id: user?.id || '',
+        email: user?.email || '',
+        full_name: profileData.name,
+        phone: profileData.phone,
+        date_of_birth: profileData.dateOfBirth,
+        gender: profileData.gender,
+        address: '', // Add if you have address field
+        emergency_contact_name: profileData.emergencyContact,
+        emergency_contact_phone: '' // Add if you have emergency phone field
+      };
+
+      await exportMedicalRecords(userProfile, familyMembers, []);
+      toast.success('Medical records exported successfully!');
+    } catch (error) {
+      console.error('Error exporting medical records:', error);
+      toast.error('Failed to export medical records. Please try again.');
+    }
   };
 
   return (
@@ -549,7 +593,7 @@ const Profile = () => {
                 </Card>
 
                 <div className="flex gap-4">
-                  <Button variant="outline" className="flex-1">
+                  <Button variant="outline" className="flex-1" onClick={handleExportMedicalRecords}>
                     <Download className="mr-2 h-4 w-4" />
                     Export Medical Records
                   </Button>
@@ -603,25 +647,111 @@ const Profile = () => {
                         <Users className="mr-2 h-5 w-5" />
                         Family Members
                       </CardTitle>
-                      <Button size="sm">Add Member</Button>
+                      <Button 
+                        size="sm" 
+                        onClick={() => setShowAddMemberDialog(true)}
+                        className="flex items-center gap-2"
+                      >
+                        <UserPlus className="h-4 w-4" />
+                        Add Member
+                      </Button>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {familyMembers.map((member) => (
-                        <div key={member.id} className="flex items-center space-x-4 p-4 border rounded-lg">
-                          <Avatar>
-                            <AvatarImage src={member.avatar} />
-                            <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <p className="font-medium">{member.name}</p>
-                            <p className="text-sm text-muted-foreground">{member.relationship}</p>
-                            <p className="text-sm text-muted-foreground">Age: {member.age}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                    {familyLoading ? (
+                      <div className="text-center py-8">
+                        <p className="text-muted-foreground">Loading family members...</p>
+                      </div>
+                    ) : familyMembers.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Users className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                        <p className="text-muted-foreground mb-4">No family members added yet</p>
+                        <Button onClick={() => setShowAddMemberDialog(true)} className="flex items-center gap-2">
+                          <UserPlus className="h-4 w-4" />
+                          Add Your First Family Member
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {familyMembers.map((member) => (
+                          <Card key={member.id} className="p-4 hover:shadow-md transition-shadow">
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-center space-x-4">
+                                <Avatar className="h-12 w-12">
+                                  <AvatarFallback className="bg-blue-100 text-blue-600">
+                                    {member.name.split(' ').map(n => n[0]).join('')}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1">
+                                  <h4 className="font-medium text-lg">{member.name}</h4>
+                                  <p className="text-sm text-muted-foreground">{member.relationship}</p>
+                                  <p className="text-sm text-muted-foreground">Age: {member.age}</p>
+                                  
+                                  {/* Additional info */}
+                                  <div className="flex items-center gap-4 mt-2">
+                                    {member.phone && (
+                                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                        <Phone className="h-3 w-3" />
+                                        <span>{member.phone}</span>
+                                      </div>
+                                    )}
+                                    {member.email && (
+                                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                        <Mail className="h-3 w-3" />
+                                        <span>{member.email}</span>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Health info badges */}
+                                  <div className="flex flex-wrap gap-2 mt-2">
+                                    {member.blood_type && (
+                                      <Badge variant="outline" className="text-xs">
+                                        {member.blood_type}
+                                      </Badge>
+                                    )}
+                                    {member.allergies && member.allergies.length > 0 && (
+                                      <Badge variant="outline" className="text-xs bg-red-50 text-red-600">
+                                        {member.allergies.length} Allergies
+                                      </Badge>
+                                    )}
+                                    {member.current_medications && member.current_medications.length > 0 && (
+                                      <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600">
+                                        {member.current_medications.length} Medications
+                                      </Badge>
+                                    )}
+                                    {member.documents && member.documents.length > 0 && (
+                                      <Badge variant="outline" className="text-xs bg-green-50 text-green-600">
+                                        <FileText className="h-3 w-3 mr-1" />
+                                        {member.documents.length} Documents
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center gap-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleEditFamilyMember(member)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleDeleteFamilyMember(member.id)}
+                                  className="text-red-600 hover:text-red-700"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -688,6 +818,21 @@ const Profile = () => {
             </Tabs>
           </div>
         </div>
+
+        {/* Add Family Member Dialog */}
+        <AddFamilyMemberDialog
+          open={showAddMemberDialog}
+          onOpenChange={setShowAddMemberDialog}
+          onAddMember={handleAddFamilyMember}
+        />
+
+        {/* Edit Family Member Dialog */}
+        <EditFamilyMemberDialog
+          open={showEditMemberDialog}
+          onOpenChange={setShowEditMemberDialog}
+          onUpdateMember={handleUpdateFamilyMember}
+          member={selectedMember}
+        />
       </div>
     </div>
   );
