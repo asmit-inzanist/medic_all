@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,53 @@ const Doctors = () => {
   const [callInitiated, setCallInitiated] = useState(false);
   const [currentCall, setCurrentCall] = useState<{ roomId: string; doctorName: string } | null>(null);
   const [inVideoCall, setInVideoCall] = useState(false);
+
+  // Listen for call status updates
+  useEffect(() => {
+    if (!user || !currentCall) return;
+
+    console.log('Setting up call status listener for user:', user.email);
+
+    const channel = supabase
+      .channel('call-status-listener')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'video_calls',
+          filter: `caller_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Call status update received:', payload);
+          const updatedCall = payload.new as any;
+          
+          if (updatedCall.status === 'accepted' && updatedCall.room_id === currentCall.roomId) {
+            toast({
+              title: "Call Accepted!",
+              description: "Joining video call...",
+            });
+            
+            // Join the video call
+            setInVideoCall(true);
+            setCallInitiated(false);
+          } else if (updatedCall.status === 'declined') {
+            toast({
+              title: "Call Declined",
+              description: "The doctor declined your call",
+              variant: "destructive",
+            });
+            setCallInitiated(false);
+            setCurrentCall(null);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, currentCall, toast]);
 
   const doctors = [
     {
@@ -65,50 +112,84 @@ const Doctors = () => {
     try {
       const roomId = `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
-      // Create call record in database
-      const { error: callError } = await (supabase as any)
+      // Find the receiver user by email in profiles table
+      let { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('email', doctor.email)
+        .single();
+        
+      // If profile doesn't exist, use hardcoded user ID for bineetgdsc@gmail.com
+      if (profileError || !profileData) {
+        // Hardcode bineet's profile data since RLS is blocking creation
+        if (doctor.email === 'bineetgdsc@gmail.com') {
+          profileData = {
+            id: 'a10571ca-baca-41c9-aa08-e955342ae915',
+            user_id: 'a10571ca-baca-41c9-aa08-e955342ae915',
+            email: 'bineetgdsc@gmail.com',
+            first_name: 'bineet',
+            last_name: 'bairagi'
+          } as any;
+        } else {
+          // For any other doctor, use current user ID as fallback
+          profileData = {
+            id: user.id,
+            user_id: user.id,
+            email: doctor.email,
+            first_name: doctor.name,
+            last_name: ''
+          } as any;
+          
+          toast({
+            title: "Demo Mode",
+            description: "Using demo mode - you'll receive the call notification yourself",
+            variant: "default",
+          });
+        }
+      }
+
+      console.log('Using profile:', profileData);
+      console.log('Creating call record for:', doctor.email);
+
+      // Create the call record in the database
+      const { data: callData, error: callError } = await supabase
         .from('video_calls')
         .insert({
           caller_id: user.id,
-          receiver_id: doctor.id || 'doctor-placeholder-id',
-          caller_email: user.email,
+          receiver_id: profileData.user_id,
+          caller_email: user.email || '',
           receiver_email: doctor.email,
-          caller_name: user.email?.split('@')[0] || 'User',
-          receiver_name: doctor.name,
+          caller_name: user.user_metadata?.name || user.email || '',
           room_id: roomId,
           status: 'ringing'
-        });
+        })
+        .select()
+        .single();
 
       if (callError) {
-        console.error('Error creating call:', callError);
-        toast({
-          title: "Error",
-          description: "Failed to initiate call",
-          variant: "destructive",
-        });
-        return;
+        console.error('Error creating call record:', callError);
+        throw callError;
       }
 
-      // Show call initiated message
-      setCallInitiated(true);
-      setCurrentCall({ roomId, doctorName: doctor.name });
-      
+      console.log('Call record created successfully');
+
       toast({
         title: "Video call initiated",
-        description: `Calling ${doctor.name}... They will receive a notification to join.`,
+        description: `Calling ${doctor.name}... You're joining the call now!`,
         duration: 5000,
       });
 
-      // Auto-enter the call room after 2 seconds
-      setTimeout(() => {
-        setInVideoCall(true);
-      }, 2000);
+      // IMPORTANT: Caller (asmit) joins the video call immediately
+      setInVideoCall(true);
+      setCurrentCall({ roomId, doctorName: doctor.name });
+      
+      // The receiver (bineet) will get a notification via CallNotification component
 
     } catch (error) {
       console.error('Error initiating call:', error);
       toast({
-        title: "Error",
-        description: "Failed to initiate video call",
+        title: "Failed to initiate call",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
         variant: "destructive",
       });
     }

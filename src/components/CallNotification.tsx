@@ -29,11 +29,11 @@ const CallNotification: React.FC<CallNotificationProps> = ({ onJoinCall }) => {
   useEffect(() => {
     if (!user) return;
 
-    console.log('Setting up call notifications for user:', user.email);
+    console.log('🔔 Setting up call notifications for user:', user.email);
 
-    // Listen for incoming calls
+    // Create a channel for incoming calls
     const channel = supabase
-      .channel('call-notifications')
+      .channel(`calls-${user.id}`)
       .on(
         'postgres_changes',
         {
@@ -43,50 +43,28 @@ const CallNotification: React.FC<CallNotificationProps> = ({ onJoinCall }) => {
           filter: `receiver_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('Incoming call notification:', payload);
-          const callData = payload.new as CallData;
+          console.log('📞 New call received:', payload.new);
+          const call = payload.new as CallData;
           
-          if (callData.status === 'ringing') {
-            setIncomingCall(callData);
-            
-            // Play notification sound (optional)
-            const audio = new Audio('/notification.mp3');
-            audio.play().catch(e => console.log('Could not play notification sound'));
+          if (call.status === 'ringing') {
+            console.log('📞 Showing call popup for:', call.caller_email);
+            setIncomingCall(call);
             
             toast({
               title: "Incoming Video Call",
-              description: `${callData.caller_name || callData.caller_email} is calling you`,
-              duration: 10000,
+              description: `${call.caller_name || call.caller_email} is calling`,
+              duration: 8000,
             });
           }
         }
       )
-      .subscribe();
-
-    // Also listen for call status updates
-    const statusChannel = supabase
-      .channel('call-status-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'video_calls'
-        },
-        (payload) => {
-          console.log('Call status update:', payload);
-          const updatedCall = payload.new as CallData;
-          
-          if (updatedCall.status === 'ended' || updatedCall.status === 'declined') {
-            setIncomingCall(null);
-          }
-        }
-      )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('� Subscription status:', status);
+      });
 
     return () => {
+      console.log('🔔 Cleaning up call notifications');
       supabase.removeChannel(channel);
-      supabase.removeChannel(statusChannel);
     };
   }, [user, toast]);
 

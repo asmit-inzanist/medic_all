@@ -1,12 +1,7 @@
 import React, { useRef, useEffect } from 'react';
+import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
-
-declare global {
-  interface Window {
-    ZegoUIKitPrebuilt: any;
-  }
-}
 
 interface VideoCallProps {
   roomID: string;
@@ -26,21 +21,7 @@ const VideoCall: React.FC<VideoCallProps> = ({ roomID, isDoctor = false, onLeave
       const appID = 235526139;
       const serverSecret = "fe2323eaf8771467e39ed8c14fb3e692";
       
-      // Ensure Zego SDK is loaded (via CDN)
-      if (!window.ZegoUIKitPrebuilt) {
-        await new Promise<void>((resolve, reject) => {
-          const s = document.createElement('script');
-          s.src = 'https://unpkg.com/@zegocloud/zego-uikit-prebuilt/ZegoUIKitPrebuilt.js';
-          s.async = true;
-          s.onload = () => resolve();
-          s.onerror = () => reject(new Error('Failed to load Zego SDK'));
-          document.head.appendChild(s);
-        });
-      }
-
-      const ZegoUIKitPrebuilt = window.ZegoUIKitPrebuilt;
-
-      // Generate Kit Token
+      // Generate Kit Token using the imported package
       const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
         appID,
         serverSecret,
@@ -63,7 +44,7 @@ const VideoCall: React.FC<VideoCallProps> = ({ roomID, isDoctor = false, onLeave
           },
         ],
         scenario: {
-          mode: ZegoUIKitPrebuilt.VideoConference,
+          mode: ZegoUIKitPrebuilt.OneONoneCall, // Changed to 1-on-1 call for doctor consultation
         },
         turnOnMicrophoneWhenJoining: true,
         turnOnCameraWhenJoining: true,
