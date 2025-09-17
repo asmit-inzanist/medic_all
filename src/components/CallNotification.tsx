@@ -34,17 +34,32 @@ const CallNotification: React.FC<CallNotificationProps> = ({ onJoinCall }) => {
 
     // Test channel - listen to ALL video_calls changes
     const testChannel = supabase
-      .channel('test-all-calls')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'video_calls' }, (payload) => {
+      .channel('test-all-calls', {
+        config: {
+          broadcast: { self: true },
+          presence: { key: 'test' }
+        }
+      })
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'video_calls' 
+      }, (payload) => {
         console.log('🔔 ✅ ANY video_calls change detected:', payload);
       })
-      .subscribe((status) => {
+      .subscribe((status, err) => {
         console.log('🔔 Test channel status:', status);
+        if (err) console.error('🔔 Test channel error:', err);
       });
 
     // Create a channel for incoming calls
     const channel = supabase
-      .channel(`calls-${user.id}`)
+      .channel(`calls-${user.id}`, {
+        config: {
+          broadcast: { self: true },
+          presence: { key: user.id }
+        }
+      })
       .on(
         'postgres_changes',
         {
@@ -69,8 +84,9 @@ const CallNotification: React.FC<CallNotificationProps> = ({ onJoinCall }) => {
           }
         }
       )
-      .subscribe((status) => {
+      .subscribe((status, err) => {
         console.log('⚡ Subscription status:', status);
+        if (err) console.error('⚡ Subscription error:', err);
       });
 
     return () => {
