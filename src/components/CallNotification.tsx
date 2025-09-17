@@ -27,81 +27,158 @@ const CallNotification: React.FC<CallNotificationProps> = ({ onJoinCall, isInCal
   const { toast } = useToast();
   const [incomingCall, setIncomingCall] = useState<CallData | null>(null);
 
+  // Critical: Check if component is even mounting
+  console.log('🚀 CallNotification component mounting/rendering');
+  console.log('🚀 Current user:', user?.email);
+  console.log('🚀 IsInCall prop:', isInCall);
+
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      console.log('❌ No user found, component will not set up notifications');
+      return;
+    }
 
     console.log('🔔 Setting up call notifications for user:', user.email);
     console.log('🔔 User ID for filtering:', user.id);
+    console.log('🔔 Is this Bineet?', user.email === 'bineetgdsc@gmail.com');
+    console.log('🔔 Expected Bineet ID:', 'a10571ca-baca-41c9-aa08-e955342ae915');
 
-    // Test channel - listen to ALL video_calls changes
-    const testChannel = supabase
-      .channel('test-all-calls', {
-        config: {
-          broadcast: { self: true },
-          presence: { key: 'test' }
+    // Check if we're actually the Bineet user
+    if (user.email === 'bineetgdsc@gmail.com') {
+      console.log('🎯 THIS IS BINEET! Setting up notifications...');
+    } else {
+      console.log('👤 This is not Bineet, this is:', user.email);
+    }
+
+    // Test Supabase connection
+    console.log('🔧 Testing Supabase connection...');
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (error) {
+        console.error('❌ Supabase auth error:', error);
+      } else {
+        console.log('✅ Supabase session valid:', !!data.session);
+      }
+    });
+
+    // Test database access
+    supabase
+      .from('video_calls')
+      .select('count', { count: 'exact' })
+      .then(({ count, error }) => {
+        if (error) {
+          console.error('❌ Database access error:', error);
+        } else {
+          console.log('✅ Database accessible, video_calls count:', count);
         }
-      })
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'video_calls' 
-      }, (payload) => {
-        console.log('🔔 ✅ ANY video_calls change detected:', payload);
-      })
-      .subscribe((status, err) => {
-        console.log('🔔 Test channel status:', status);
-        if (err) console.error('🔔 Test channel error:', err);
       });
 
-    // Create a channel for incoming calls
-    const channel = supabase
-      .channel(`calls-${user.id}`, {
-        config: {
-          broadcast: { self: true },
-          presence: { key: user.id }
-        }
-      })
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'video_calls',
-          filter: `receiver_id=eq.${user.id}`
-        },
-        (payload) => {
-          console.log('📞 New call received:', payload.new);
-          const call = payload.new as CallData;
-          
-          if (call.status === 'ringing') {
-            console.log('📞 Showing call popup for:', call.caller_email);
+    // Create a unique channel name to avoid conflicts
+    const channelName = `video_calls_${user.id}_${Date.now()}`;
+    console.log('📡 Creating channel:', channelName);
+
+    let isSubscribed = false;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 3;
+
+    const createSubscription = () => {
+      console.log('🔄 Creating new subscription...');
+      
+      const channel = supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'video_calls',
+            filter: `receiver_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('📞 New call received:', payload.new);
+            console.log('📞 Current user ID:', user.id);
+            console.log('📞 Call receiver ID:', payload.new?.receiver_id);
+            console.log('📞 IDs match?', user.id === payload.new?.receiver_id);
             
-            // Don't show popup if already in a call
-            if (!isInCall) {
-              setIncomingCall(call);
+            const call = payload.new as CallData;
+            
+            if (call.status === 'ringing') {
+              console.log('📞 Showing call popup for:', call.caller_email);
               
-              toast({
-                title: "Incoming Video Call",
-                description: `${call.caller_name || call.caller_email} is calling`,
-                duration: 8000,
-              });
-            } else {
-              console.log('📞 Ignoring call - already in a call');
+              // Don't show popup if already in a call
+              if (!isInCall) {
+                setIncomingCall(call);
+                
+                toast({
+                  title: "Incoming Video Call",
+                  description: `${call.caller_name || call.caller_email} is calling`,
+                  duration: 8000,
+                });
+              } else {
+                console.log('📞 User already in call, not showing popup');
+              }
             }
           }
-        }
-      )
-      .subscribe((status, err) => {
-        console.log('⚡ Subscription status:', status);
-        if (err) console.error('⚡ Subscription error:', err);
-      });
+        )
+        .subscribe((status, err) => {
+          console.log('🔗 Main subscription status:', status);
+          
+          if (err) {
+            console.error('❌ Subscription error:', err);
+            
+            // Try to reconnect on error
+            if (reconnectAttempts < maxReconnectAttempts) {
+              reconnectAttempts++;
+              console.log(`🔄 Reconnection attempt ${reconnectAttempts}/${maxReconnectAttempts}`);
+              setTimeout(() => {
+                channel.unsubscribe();
+                createSubscription();
+              }, 2000 * reconnectAttempts);
+            }
+          }
+          
+          if (status === 'SUBSCRIBED') {
+            console.log('✅ Successfully subscribed to video calls');
+            isSubscribed = true;
+            reconnectAttempts = 0;
+          } else if (status === 'CLOSED') {
+            console.log('❌ Subscription closed');
+            isSubscribed = false;
+            
+            // Auto-reconnect if not intentionally closed
+            if (reconnectAttempts < maxReconnectAttempts) {
+              reconnectAttempts++;
+              console.log(`🔄 Auto-reconnecting... attempt ${reconnectAttempts}/${maxReconnectAttempts}`);
+              setTimeout(() => {
+                createSubscription();
+              }, 1000 * reconnectAttempts);
+            }
+          } else if (status === 'CHANNEL_ERROR') {
+            console.error('❌ Channel error - recreating subscription');
+            if (reconnectAttempts < maxReconnectAttempts) {
+              reconnectAttempts++;
+              setTimeout(() => {
+                channel.unsubscribe();
+                createSubscription();
+              }, 3000);
+            }
+          }
+        });
 
-    return () => {
-      console.log('🔔 Cleaning up call notifications');
-      supabase.removeChannel(channel);
-      supabase.removeChannel(testChannel);
+      return channel;
     };
-  }, [user, toast]);
+
+    // Create initial subscription
+    const subscription = createSubscription();
+
+    // Cleanup function
+    return () => {
+      console.log('🧹 Cleaning up call notifications');
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+      isSubscribed = false;
+    };
+  }, [user, isInCall]); // Added isInCall to dependencies
 
   const handleAcceptCall = async () => {
     if (!incomingCall) return;
