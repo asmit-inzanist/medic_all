@@ -24,6 +24,8 @@ const Doctors = () => {
   useEffect(() => {
     if (!user || !currentCall) return;
 
+    console.log('Setting up call status listener for user:', user.email);
+
     const channel = supabase
       .channel('call-status-listener')
       .on(
@@ -35,6 +37,7 @@ const Doctors = () => {
           filter: `caller_id=eq.${user.id}`
         },
         (payload) => {
+          console.log('Call status update received:', payload);
           const updatedCall = payload.new as any;
           
           if (updatedCall.status === 'accepted' && updatedCall.room_id === currentCall.roomId) {
@@ -149,6 +152,9 @@ const Doctors = () => {
       const receiverId = doctor.email === 'bineetgdsc@gmail.com' 
         ? 'a10571ca-baca-41c9-aa08-e955342ae915'  // Bineet's hardcoded user ID
         : profileData.user_id;
+      
+      console.log('Creating call record for:', doctor.email);
+      console.log('📞 Caller ID:', user.id, '📞 Receiver ID:', receiverId);
 
       // Create the call record in the database
       const { data: callData, error: callError } = await supabase
@@ -169,6 +175,8 @@ const Doctors = () => {
         console.error('Error creating call record:', callError);
         throw callError;
       }
+
+      console.log('Call record created successfully');
 
       toast({
         title: "Video call initiated",
