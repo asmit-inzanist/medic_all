@@ -109,19 +109,19 @@ const Home = () => {
       icon: Mic,
       title: 'Voice-to-Text',
       description: 'Hands-free interaction for easy communication with healthcare providers',
-      bgColor: 'bg-blue-50'
+      bgColor: 'bg-primary/10'
     },
     {
       icon: Globe,
       title: 'Multi-Language',
       description: 'Accessible healthcare services in multiple languages for everyone',
-      bgColor: 'bg-green-50'
+      bgColor: 'bg-secondary'
     },
     {
       icon: Phone,
       title: t('home.emergencyContact'),
       description: 'Immediate help and guidance for urgent medical situations',
-      bgColor: 'bg-red-50'
+      bgColor: 'bg-destructive/10'
     }
   ];
 
@@ -270,29 +270,29 @@ const Home = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-white py-12 mt-16">
+      <footer className="bg-card border-t py-12 mt-16">
         <div className="container mx-auto px-4 text-center">
           <div className="mb-8">
             <h3 className="text-2xl font-bold mb-4">{t('common.brand')}</h3>
-            <p className="text-slate-400 max-w-2xl mx-auto">
+            <p className="text-muted-foreground max-w-2xl mx-auto">
               Making healthcare accessible, convenient, and efficient for everyone through innovative 
               technology and user-friendly design.
             </p>
           </div>
           
           <div className="flex flex-wrap justify-center gap-4 mb-8">
-            <Button variant="outline" size="sm" className="border-slate-600 text-slate-300 hover:text-white">
+            <Button variant="outline" size="sm">
               Privacy Policy
             </Button>
-            <Button variant="outline" size="sm" className="border-slate-600 text-slate-300 hover:text-white">
+            <Button variant="outline" size="sm">
               Terms of Service
             </Button>
-            <Button variant="outline" size="sm" className="border-slate-600 text-slate-300 hover:text-white">
+            <Button variant="outline" size="sm">
               Contact Support
             </Button>
           </div>
           
-          <div className="text-sm text-slate-500">
+          <div className="text-sm text-muted-foreground">
             © 2024 Medic-AL. All rights reserved.
           </div>
         </div>
