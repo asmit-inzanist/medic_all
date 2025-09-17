@@ -29,19 +29,6 @@ const CallNotification: React.FC<CallNotificationProps> = ({ onJoinCall }) => {
   useEffect(() => {
     if (!user) return;
 
-    console.log('🔔 Setting up call notifications for user:', user.email);
-    console.log('🔔 User ID for filtering:', user.id);
-
-    // Test channel - listen to ALL video_calls changes
-    const testChannel = supabase
-      .channel('test-all-calls')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'video_calls' }, (payload) => {
-        console.log('🔔 ✅ ANY video_calls change detected:', payload);
-      })
-      .subscribe((status) => {
-        console.log('🔔 Test channel status:', status);
-      });
-
     // Create a channel for incoming calls
     const channel = supabase
       .channel(`calls-${user.id}`)
@@ -54,11 +41,9 @@ const CallNotification: React.FC<CallNotificationProps> = ({ onJoinCall }) => {
           filter: `receiver_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('📞 New call received:', payload.new);
           const call = payload.new as CallData;
           
           if (call.status === 'ringing') {
-            console.log('📞 Showing call popup for:', call.caller_email);
             setIncomingCall(call);
             
             toast({
@@ -69,14 +54,10 @@ const CallNotification: React.FC<CallNotificationProps> = ({ onJoinCall }) => {
           }
         }
       )
-      .subscribe((status) => {
-        console.log('� Subscription status:', status);
-      });
+      .subscribe();
 
     return () => {
-      console.log('🔔 Cleaning up call notifications');
       supabase.removeChannel(channel);
-      supabase.removeChannel(testChannel);
     };
   }, [user, toast]);
 
@@ -92,8 +73,6 @@ const CallNotification: React.FC<CallNotificationProps> = ({ onJoinCall }) => {
 
       if (error) throw error;
 
-      console.log('Call accepted, joining room:', incomingCall.room_id);
-      
       // Join the call
       onJoinCall?.(incomingCall.room_id);
       setIncomingCall(null);

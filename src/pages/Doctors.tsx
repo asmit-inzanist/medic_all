@@ -24,8 +24,6 @@ const Doctors = () => {
   useEffect(() => {
     if (!user || !currentCall) return;
 
-    console.log('Setting up call status listener for user:', user.email);
-
     const channel = supabase
       .channel('call-status-listener')
       .on(
@@ -37,7 +35,6 @@ const Doctors = () => {
           filter: `caller_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('Call status update received:', payload);
           const updatedCall = payload.new as any;
           
           if (updatedCall.status === 'accepted' && updatedCall.room_id === currentCall.roomId) {
@@ -148,22 +145,12 @@ const Doctors = () => {
         }
       }
 
-      console.log('Using profile:', profileData);
-      
-      // ALWAYS use hardcoded bineet user ID when calling bineetgdsc@gmail.com
-      const receiverId = doctor.email === 'bineetgdsc@gmail.com' 
-        ? 'a10571ca-baca-41c9-aa08-e955342ae915'  // Bineet's hardcoded user ID
-        : profileData.user_id;
-      
-      console.log('Creating call record for:', doctor.email);
-      console.log('📞 Caller ID:', user.id, '📞 Receiver ID:', receiverId);
-
       // Create the call record in the database
       const { data: callData, error: callError } = await supabase
         .from('video_calls')
         .insert({
           caller_id: user.id,
-          receiver_id: receiverId,  // Use hardcoded bineet ID for bineetgdsc@gmail.com
+          receiver_id: profileData.user_id,
           caller_email: user.email || '',
           receiver_email: doctor.email,
           caller_name: user.user_metadata?.name || user.email || '',
@@ -177,8 +164,6 @@ const Doctors = () => {
         console.error('Error creating call record:', callError);
         throw callError;
       }
-
-      console.log('Call record created successfully');
 
       toast({
         title: "Video call initiated",
