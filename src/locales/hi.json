@@ -284,6 +284,8 @@
     "getDirections": "दिशा-निर्देश प्राप्त करें",
     "scheduleVisit": "यात्रा निर्धारित करें",
     "call": "कॉल करें",
+    "findNearbyHospitals": "नजदीकी अस्पताल खोजें",
+    "showHospitalList": "अस्पताल सूची दिखाएं",
     "myBookings": "मेरी बुकिंग्स",
     "viewBookings": "बुकिंग्स देखें",
     "viewBookingsDesc": "अपनी अस्पताल आरक्षणों को देखें और प्रबंधित करें",

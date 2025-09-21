@@ -284,6 +284,8 @@
     "getDirections": "దిశలను పొందండి",
     "scheduleVisit": "సందర్శనను షెడ్యూల్ చేయండి",
     "call": "కాల్ చేయండి",
+    "findNearbyHospitals": "సమీప ఆసుపత్రులను కనుగొనండి",
+    "showHospitalList": "ఆసుపత్రి జాబితాను చూపించు",
     "myBookings": "నా బుకింగ్లు",
     "viewBookings": "బుకింగ్లను చూడండి",
     "viewBookingsDesc": "మీ ఆసుపత్రి రిజర్వేషన్లను చూడండి మరియు నిర్వహించండి",

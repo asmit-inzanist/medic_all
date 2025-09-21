@@ -195,7 +195,14 @@
     "uploadNow": "Upload Now",
     "trackOrders": "Track Orders",
     "trackOrdersDesc": "Track your medicine deliveries in real-time",
-    "trackOrder": "Track Order"
+    "trackOrder": "Track Order",
+    "locationRequired": "Location access required to find nearby hospitals",
+    "findingLocation": "Finding your location...",
+    "findingHospitals": "Finding nearby hospitals...",
+    "noHospitalsFound": "No hospitals found nearby",
+    "searchAgain": "Search Again",
+    "tryAgain": "Try Again",
+    "emergency": "Emergency"
   },
   "doctors": {
     "title": "Find Doctors",
@@ -271,6 +278,12 @@
     "navigation": "Navigation",
     "findRoutes": "Find Routes",
     "navigationDesc": "Get directions to any hospital quickly",
+    "findNearbyHospitals": "Find Nearby Hospitals",
+    "showHospitalList": "Show Hospital List",
+    "nearbyHospitals": "Nearby Hospitals",
+    "realHospital": "Real Hospital",
+    "away": "away",
+    "emergencyServices": "Emergency Services",
     "generalMedicine": "General Medicine",
     "primaryCare": "Primary Care",
     "cardiology": "Cardiology",
