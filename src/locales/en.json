@@ -230,6 +230,16 @@
     "hour": "hour",
     "years": "years"
   },
+  "videoCall": {
+    "leaveCall": "Leave Call",
+    "disconnect": "Disconnect",
+    "endCall": "End Call",
+    "confirmLeave": "Are you sure you want to leave this call?",
+    "callEnded": "Call ended",
+    "reconnecting": "Reconnecting...",
+    "cameraOff": "Camera is off",
+    "microphoneOff": "Microphone is off"
+  },
   "hospitals": {
     "title": "Hospital Booking",
     "subtitle": "Find and book beds at top hospitals in your area",

@@ -2,6 +2,9 @@ import React, { useRef, useEffect } from 'react';
 import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { PhoneOff } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface VideoCallProps {
   roomID: string;
@@ -11,6 +14,7 @@ interface VideoCallProps {
 
 const VideoCall: React.FC<VideoCallProps> = ({ roomID, isDoctor = false, onLeaveCall }) => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const zpRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -67,11 +71,44 @@ const VideoCall: React.FC<VideoCallProps> = ({ roomID, isDoctor = false, onLeave
     initializeCall();
 
     return () => {
+      console.log('🧹 Cleaning up VideoCall component');
       if (zpRef.current) {
-        zpRef.current.destroy();
+        try {
+          zpRef.current.destroy();
+          zpRef.current = null;
+        } catch (error) {
+          console.error('Error during cleanup:', error);
+        }
+      }
+      
+      // Clear container content
+      if (containerRef.current) {
+        containerRef.current.innerHTML = '';
       }
     };
   }, [roomID, user, onLeaveCall]);
+
+  const handleDisconnect = () => {
+    console.log('🔌 Disconnecting from video call');
+    
+    // Clean up Zego instance first
+    if (zpRef.current) {
+      try {
+        zpRef.current.destroy();
+        zpRef.current = null;
+      } catch (error) {
+        console.error('Error destroying Zego instance:', error);
+      }
+    }
+    
+    // Clear the container
+    if (containerRef.current) {
+      containerRef.current.innerHTML = '';
+    }
+    
+    // Call the parent's leave handler
+    onLeaveCall?.();
+  };
 
   if (!user) {
     return (
@@ -84,7 +121,21 @@ const VideoCall: React.FC<VideoCallProps> = ({ roomID, isDoctor = false, onLeave
   }
 
   return (
-    <div className="w-full h-screen bg-background">
+    <div className="w-full h-screen bg-background relative">
+      {/* Custom Disconnect Button Overlay */}
+      <div className="absolute top-4 right-4 z-50 flex gap-2">
+        <Button
+          onClick={handleDisconnect}
+          variant="destructive"
+          size="lg"
+          className="shadow-lg hover:shadow-xl transition-all duration-200"
+        >
+          <PhoneOff className="mr-2 h-5 w-5" />
+          {t('videoCall.leaveCall')}
+        </Button>
+      </div>
+      
+      {/* Video Call Container */}
       <div 
         ref={containerRef} 
         className="w-full h-full"
