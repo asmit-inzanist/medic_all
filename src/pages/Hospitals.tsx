@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Search, Filter, MapPin, Star, Navigation, Clock, Phone, Calendar, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const Hospitals = () => {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [hospitals, setHospitals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -99,8 +101,8 @@ const Hospitals = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Hospital Booking</h1>
-          <p className="text-muted-foreground">Find and book beds at top hospitals in your area</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">{t('hospitals.title')}</h1>
+          <p className="text-muted-foreground">{t('hospitals.subtitle')}</p>
         </div>
 
         {/* Search and Filters */}
@@ -108,7 +110,7 @@ const Hospitals = () => {
           <div className="md:col-span-5 relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search hospitals, specialties, or locations..."
+              placeholder={t('hospitals.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -175,12 +177,12 @@ const Hospitals = () => {
                 <Phone className="h-5 w-5 text-destructive" />
               </div>
               <div>
-                <h3 className="font-semibold text-destructive">Medical Emergency?</h3>
-                <p className="text-sm text-muted-foreground">Call 911 immediately or visit the nearest emergency room</p>
+                <h3 className="font-semibold text-destructive">{t('hospitals.medicalEmergency')}</h3>
+                <p className="text-sm text-muted-foreground">{t('hospitals.emergencyDesc')}</p>
               </div>
             </div>
             <Button variant="destructive">
-              Emergency Call
+              {t('hospitals.emergencyCall')}
             </Button>
           </div>
         </div>
@@ -326,11 +328,11 @@ const Hospitals = () => {
                       onClick={() => openGoogleMaps(hospital.address, hospital.name)}
                     >
                       <Navigation className="mr-2 h-4 w-4" />
-                      Get Directions
+                      {t('hospitals.getDirections')}
                     </Button>
                     <Button variant="outline" className="flex-1">
                       <Calendar className="mr-2 h-4 w-4" />
-                      Schedule Visit
+                      {t('hospitals.scheduleVisit')}
                     </Button>
                     <Button 
                       variant="outline"
@@ -338,7 +340,7 @@ const Hospitals = () => {
                       disabled={!hospital.phone}
                     >
                       <Phone className="mr-2 h-4 w-4" />
-                      Call
+                      {t('hospitals.call')}
                     </Button>
                   </div>
                 </div>
@@ -352,23 +354,23 @@ const Hospitals = () => {
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="text-center p-6">
             <Calendar className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">My Bookings</h3>
-            <p className="text-muted-foreground mb-4">View and manage your hospital reservations</p>
-            <Button variant="outline">View Bookings</Button>
+            <h3 className="text-lg font-semibold mb-2">{t('hospitals.myBookings')}</h3>
+            <p className="text-muted-foreground mb-4">{t('hospitals.viewBookingsDesc')}</p>
+            <Button variant="outline">{t('hospitals.viewBookings')}</Button>
           </Card>
 
           <Card className="text-center p-6">
             <Clock className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Emergency Rooms</h3>
-            <p className="text-muted-foreground mb-4">Find nearest emergency rooms with live wait times</p>
-            <Button variant="outline">Find ER</Button>
+            <h3 className="text-lg font-semibold mb-2">{t('hospitals.emergencyRooms')}</h3>
+            <p className="text-muted-foreground mb-4">{t('hospitals.emergencyRoomsDesc')}</p>
+            <Button variant="outline">{t('hospitals.findER')}</Button>
           </Card>
 
           <Card className="text-center p-6">
             <Navigation className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Navigation</h3>
-            <p className="text-muted-foreground mb-4">Get directions to any hospital quickly</p>
-            <Button variant="outline">Find Routes</Button>
+            <h3 className="text-lg font-semibold mb-2">{t('hospitals.navigation')}</h3>
+            <p className="text-muted-foreground mb-4">{t('hospitals.navigationDesc')}</p>
+            <Button variant="outline">{t('hospitals.findRoutes')}</Button>
           </Card>
         </div>
       </div>

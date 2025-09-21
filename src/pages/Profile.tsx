@@ -334,7 +334,7 @@ const Profile = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">{t('profile.title')}</h1>
-          <p className="text-muted-foreground">Manage your health profile and medical information</p>
+          <p className="text-muted-foreground">{t('profile.subtitle')}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -342,7 +342,7 @@ const Profile = () => {
           <Card className="lg:col-span-1">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Profile Information</CardTitle>
+                <CardTitle>{t('profile.profileInformation')}</CardTitle>
                 <Button
                   variant="outline"
                   size="sm"
@@ -371,7 +371,7 @@ const Profile = () => {
                 {isEditing && (
                   <Button variant="outline" size="sm" className="mb-4">
                     <Upload className="mr-2 h-4 w-4" />
-                    Change Photo
+                    {t('profile.changePhoto')}
                   </Button>
                 )}
               </div>
@@ -433,17 +433,17 @@ const Profile = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="gender">Gender</Label>
+                  <Label htmlFor="gender">{t('profile.gender')}</Label>
                   {isEditing ? (
                     <Select value={profileData.gender} onValueChange={(value) => setProfileData({ ...profileData, gender: value })}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Male">Male</SelectItem>
-                        <SelectItem value="Female">Female</SelectItem>
-                        <SelectItem value="Other">Other</SelectItem>
-                        <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
+                        <SelectItem value="Male">{t('profile.male')}</SelectItem>
+                        <SelectItem value="Female">{t('profile.female')}</SelectItem>
+                        <SelectItem value="Other">{t('profile.other')}</SelectItem>
+                        <SelectItem value="Prefer not to say">{t('profile.preferNotToSay')}</SelectItem>
                       </SelectContent>
                     </Select>
                   ) : (
@@ -456,10 +456,10 @@ const Profile = () => {
                 <div className="flex gap-2">
                   <Button onClick={handleSave} className="flex-1">
                     <Save className="mr-2 h-4 w-4" />
-                    Save Changes
+                    {t('profile.saveChanges')}
                   </Button>
                   <Button variant="outline" onClick={() => setIsEditing(false)}>
-                    Cancel
+                    {t('common.cancel')}
                   </Button>
                 </div>
               )}
@@ -470,11 +470,11 @@ const Profile = () => {
           <div className="lg:col-span-2">
             <Tabs defaultValue="medical" className="space-y-6">
               <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="medical">Medical</TabsTrigger>
-                <TabsTrigger value="documents">Documents</TabsTrigger>
-                <TabsTrigger value="activity">Activity</TabsTrigger>
-                <TabsTrigger value="family">Family</TabsTrigger>
-                <TabsTrigger value="settings">Settings</TabsTrigger>
+                <TabsTrigger value="medical">{t('profile.tabs.medical')}</TabsTrigger>
+                <TabsTrigger value="documents">{t('profile.tabs.documents')}</TabsTrigger>
+                <TabsTrigger value="activity">{t('profile.tabs.activity')}</TabsTrigger>
+                <TabsTrigger value="family">{t('profile.tabs.family')}</TabsTrigger>
+                <TabsTrigger value="settings">{t('profile.tabs.settings')}</TabsTrigger>
               </TabsList>
 
               {/* Medical Information Tab */}
@@ -483,52 +483,52 @@ const Profile = () => {
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <Heart className="mr-2 h-5 w-5" />
-                      Health Information
+                      {t('profile.healthInfo')}
                     </CardTitle>
                   </CardHeader>
                     <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {editHealth ? (
                         <>
                           <div>
-                            <Label>Blood Type</Label>
+                            <Label>{t('profile.bloodType')}</Label>
                             <Input name="bloodType" value={profileData.bloodType} onChange={handleOnboardingChange} />
                           </div>
                           <div>
-                            <Label>Height</Label>
+                            <Label>{t('profile.height')}</Label>
                             <Input name="height" value={profileData.height} onChange={handleOnboardingChange} />
                           </div>
                           <div>
-                            <Label>Weight</Label>
+                            <Label>{t('profile.weight')}</Label>
                             <Input name="weight" value={profileData.weight} onChange={handleOnboardingChange} />
                           </div>
                           <div>
-                            <Label>Emergency Contact</Label>
+                            <Label>{t('profile.emergencyContact')}</Label>
                             <Input name="emergencyContact" value={profileData.emergencyContact} onChange={handleOnboardingChange} />
                           </div>
                           <div className="col-span-2 flex gap-2 mt-2">
-                            <Button variant="outline" onClick={handleHealthSave}>Save</Button>
+                            <Button variant="outline" onClick={handleHealthSave}>{t('common.save')}</Button>
                           </div>
                         </>
                       ) : (
                         <>
                           <div>
-                            <Label>Blood Type</Label>
+                            <Label>{t('profile.bloodType')}</Label>
                             <p className="text-sm text-muted-foreground">{profileData.bloodType}</p>
                           </div>
                           <div>
-                            <Label>Height</Label>
+                            <Label>{t('profile.height')}</Label>
                             <p className="text-sm text-muted-foreground">{profileData.height}</p>
                           </div>
                           <div>
-                            <Label>Weight</Label>
+                            <Label>{t('profile.weight')}</Label>
                             <p className="text-sm text-muted-foreground">{profileData.weight}</p>
                           </div>
                           <div>
-                            <Label>Emergency Contact</Label>
+                            <Label>{t('profile.emergencyContact')}</Label>
                             <p className="text-sm text-muted-foreground">{profileData.emergencyContact}</p>
                           </div>
                           <div className="col-span-2 flex gap-2 mt-2">
-                            <Button variant="outline" onClick={handleHealthEdit}>Edit</Button>
+                            <Button variant="outline" onClick={handleHealthEdit}>{t('common.edit')}</Button>
                           </div>
                         </>
                       )}
@@ -539,52 +539,52 @@ const Profile = () => {
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <FileText className="mr-2 h-5 w-5" />
-                      Medical History
+                      {t('profile.medicalHistory')}
                     </CardTitle>
                   </CardHeader>
                     <CardContent className="space-y-4">
                       {editHistory ? (
                         <>
                           <div>
-                            <Label>Allergies</Label>
+                            <Label>{t('profile.allergies')}</Label>
                             <Input name="allergies" value={profileData.allergies} onChange={handleOnboardingChange} />
                           </div>
                           <div>
-                            <Label>Current Medications</Label>
+                            <Label>{t('profile.medications')}</Label>
                             <Input name="medications" value={profileData.medications} onChange={handleOnboardingChange} />
                           </div>
                           <div>
-                            <Label>Medical Conditions</Label>
+                            <Label>{t('profile.conditions')}</Label>
                             <Input name="conditions" value={profileData.conditions} onChange={handleOnboardingChange} />
                           </div>
                           <div>
-                            <Label>Insurance Information</Label>
+                            <Label>{t('profile.insuranceInfo')}</Label>
                             <Input name="insurance" value={profileData.insurance} onChange={handleOnboardingChange} />
                           </div>
                           <div className="flex gap-2 mt-2">
-                            <Button variant="outline" onClick={handleHistorySave}>Save</Button>
+                            <Button variant="outline" onClick={handleHistorySave}>{t('common.save')}</Button>
                           </div>
                         </>
                       ) : (
                         <>
                           <div>
-                            <Label>Allergies</Label>
+                            <Label>{t('profile.allergies')}</Label>
                             <p className="text-sm text-muted-foreground">{profileData.allergies}</p>
                           </div>
                           <div>
-                            <Label>Current Medications</Label>
+                            <Label>{t('profile.medications')}</Label>
                             <p className="text-sm text-muted-foreground">{profileData.medications}</p>
                           </div>
                           <div>
-                            <Label>Medical Conditions</Label>
+                            <Label>{t('profile.conditions')}</Label>
                             <p className="text-sm text-muted-foreground">{profileData.conditions}</p>
                           </div>
                           <div>
-                            <Label>Insurance Information</Label>
+                            <Label>{t('profile.insuranceInfo')}</Label>
                             <p className="text-sm text-muted-foreground">{profileData.insurance}</p>
                           </div>
                           <div className="flex gap-2 mt-2">
-                            <Button variant="outline" onClick={handleHistoryEdit}>Edit</Button>
+                            <Button variant="outline" onClick={handleHistoryEdit}>{t('common.edit')}</Button>
                           </div>
                         </>
                       )}
@@ -594,11 +594,11 @@ const Profile = () => {
                 <div className="flex gap-4">
                   <Button variant="outline" className="flex-1" onClick={handleExportMedicalRecords}>
                     <Download className="mr-2 h-4 w-4" />
-                    Export Medical Records
+                    {t('profile.exportMedicalRecords')}
                   </Button>
                   <Button variant="outline" className="flex-1">
                     <Folder className="mr-2 h-4 w-4" />
-                    View Documents
+                    {t('profile.viewDocuments')}
                   </Button>
                 </div>
               </TabsContent>
@@ -614,7 +614,7 @@ const Profile = () => {
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <Calendar className="mr-2 h-5 w-5" />
-                      Recent Activity
+                      {t('profile.recentActivity')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -644,7 +644,7 @@ const Profile = () => {
                     <div className="flex items-center justify-between">
                       <CardTitle className="flex items-center">
                         <Users className="mr-2 h-5 w-5" />
-                        Family Members
+                        {t('profile.familyMembers')}
                       </CardTitle>
                       <Button 
                         size="sm" 
@@ -652,7 +652,7 @@ const Profile = () => {
                         className="flex items-center gap-2"
                       >
                         <UserPlus className="h-4 w-4" />
-                        Add Member
+                        {t('profile.addMember')}
                       </Button>
                     </div>
                   </CardHeader>
@@ -664,10 +664,10 @@ const Profile = () => {
                     ) : familyMembers.length === 0 ? (
                       <div className="text-center py-8">
                         <Users className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                        <p className="text-muted-foreground mb-4">No family members added yet</p>
+                        <p className="text-muted-foreground mb-4">{t('profile.noFamilyMembers')}</p>
                         <Button onClick={() => setShowAddMemberDialog(true)} className="flex items-center gap-2">
                           <UserPlus className="h-4 w-4" />
-                          Add Your First Family Member
+                          {t('profile.addFirstFamilyMember')}
                         </Button>
                       </div>
                     ) : (
@@ -761,30 +761,30 @@ const Profile = () => {
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <Settings className="mr-2 h-5 w-5" />
-                      Account Settings
+                      {t('profile.accountSettings')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium">Email Notifications</p>
-                        <p className="text-sm text-muted-foreground">Receive updates about appointments and health tips</p>
+                        <p className="font-medium">{t('profile.emailNotifications')}</p>
+                        <p className="text-sm text-muted-foreground">{t('profile.emailNotificationsDesc')}</p>
                       </div>
-                      <Button variant="outline" size="sm">Configure</Button>
+                      <Button variant="outline" size="sm">{t('profile.configure')}</Button>
                     </div>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium">Privacy Settings</p>
-                        <p className="text-sm text-muted-foreground">Manage who can see your health information</p>
+                        <p className="font-medium">{t('profile.privacySettings')}</p>
+                        <p className="text-sm text-muted-foreground">{t('profile.privacySettingsDesc')}</p>
                       </div>
-                      <Button variant="outline" size="sm">Manage</Button>
+                      <Button variant="outline" size="sm">{t('profile.manage')}</Button>
                     </div>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium">Two-Factor Authentication</p>
-                        <p className="text-sm text-muted-foreground">Add an extra layer of security to your account</p>
+                        <p className="font-medium">{t('profile.twoFactorAuth')}</p>
+                        <p className="text-sm text-muted-foreground">{t('profile.twoFactorAuthDesc')}</p>
                       </div>
-                      <Button variant="outline" size="sm">Enable</Button>
+                      <Button variant="outline" size="sm">{t('profile.enable')}</Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -793,23 +793,23 @@ const Profile = () => {
                   <CardHeader>
                     <CardTitle className="flex items-center text-destructive">
                       <Shield className="mr-2 h-5 w-5" />
-                      Danger Zone
+                      {t('profile.dangerZone')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium">Export Data</p>
-                        <p className="text-sm text-muted-foreground">Download a copy of your health data</p>
+                        <p className="font-medium">{t('profile.exportData')}</p>
+                        <p className="text-sm text-muted-foreground">{t('profile.exportDataDesc')}</p>
                       </div>
-                      <Button variant="outline" size="sm">Export</Button>
+                      <Button variant="outline" size="sm">{t('profile.export')}</Button>
                     </div>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-destructive">Delete Account</p>
-                        <p className="text-sm text-muted-foreground">Permanently delete your account and all data</p>
+                        <p className="font-medium text-destructive">{t('profile.deleteAccount')}</p>
+                        <p className="text-sm text-muted-foreground">{t('profile.deleteAccountDesc')}</p>
                       </div>
-                      <Button variant="destructive" size="sm">Delete</Button>
+                      <Button variant="destructive" size="sm">{t('common.delete')}</Button>
                     </div>
                   </CardContent>
                 </Card>

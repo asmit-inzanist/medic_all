@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ import VideoCall from '@/components/VideoCall';
 const Doctors = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const { doctors, loading, error } = useDoctors();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSpecialty, setSelectedSpecialty] = useState('all');
@@ -286,8 +288,8 @@ const Doctors = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Find Doctors</h1>
-          <p className="text-muted-foreground">Connect with certified healthcare professionals for online consultations</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">{t('doctors.title')}</h1>
+          <p className="text-muted-foreground">{t('doctors.subtitle')}</p>
         </div>
 
         {/* Search and Filters */}
@@ -295,7 +297,7 @@ const Doctors = () => {
           <div className="md:col-span-5 relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search doctors, specialties, or conditions..."
+              placeholder={t('doctors.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -390,12 +392,12 @@ const Doctors = () => {
                   {drBineet.isVerified && (
                     <div className="flex items-center gap-1">
                       <Shield className="w-4 h-4 text-blue-600" />
-                      <span className="text-sm text-blue-600 font-medium">Verified</span>
+                      <span className="text-sm text-blue-600 font-medium">{t('doctors.verified')}</span>
                     </div>
                   )}
                   {drBineet.isOnline && (
                     <Badge className="bg-green-500 hover:bg-green-600 text-white">
-                      Online
+                      {t('doctors.online')}
                     </Badge>
                   )}
                 </div>
@@ -414,22 +416,22 @@ const Doctors = () => {
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div className="text-center">
                     <div className="text-xl font-bold text-blue-600">${drBineet.fee}</div>
-                    <div className="text-xs text-muted-foreground">Consultation Fee</div>
+                    <div className="text-xs text-muted-foreground">{t('doctors.consultationFee')}</div>
                   </div>
                   <div className="text-center">
                     <div className="text-xl font-bold text-blue-600">{drBineet.responseTime}</div>
-                    <div className="text-xs text-muted-foreground">Response Time</div>
+                    <div className="text-xs text-muted-foreground">{t('doctors.responseTime')}</div>
                   </div>
                 </div>
                 
                 <div className="mb-4">
-                  <span className="text-sm text-muted-foreground">Languages: </span>
+                  <span className="text-sm text-muted-foreground">{t('doctors.languages')}: </span>
                   <span className="text-sm">{drBineet.languages.join(', ')}</span>
                 </div>
                 
                 <div className="flex items-center gap-2 mb-4">
                   <Clock className="w-4 h-4 text-green-600" />
-                  <span className="text-sm text-green-600 font-medium">Next Available: {drBineet.availability}</span>
+                  <span className="text-sm text-green-600 font-medium">{t('doctors.nextAvailable')}: {drBineet.availability}</span>
                 </div>
                 
                 <div className="grid grid-cols-3 gap-2">
@@ -439,18 +441,18 @@ const Doctors = () => {
                     disabled={callInitiated}
                   >
                     <Video className="mr-1 h-4 w-4" />
-                    {callInitiated ? 'Calling...' : 'Call'}
+                    {callInitiated ? 'Calling...' : t('doctors.call')}
                   </Button>
                   <Button 
                     variant="outline"
                     onClick={() => handleContactDoctor(drBineet)}
                   >
                     <Phone className="mr-1 h-4 w-4" />
-                    Contact
+                    {t('doctors.contact')}
                   </Button>
                   <Button variant="outline">
                     <Calendar className="mr-1 h-4 w-4" />
-                    Schedule
+                    {t('doctors.schedule')}
                   </Button>
                 </div>
               </div>

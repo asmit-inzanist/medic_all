@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Search, Filter, ShoppingCart, Star, MapPin, Truck, Clock, MapPinOff, Loader2, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +25,7 @@ import { useRealPharmacies } from '@/hooks/useRealPharmacies';
 import { PharmacyDetails } from '@/components/PharmacyDetails';
 
 const Medicine = () => {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState<'price-low' | 'price-high' | 'rating' | 'delivery' | 'distance'>('distance');
@@ -101,8 +103,8 @@ const Medicine = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">Medicine Marketplace</h1>
-              <p className="text-muted-foreground">Find and order medications from verified pharmacies near you</p>
+              <h1 className="text-3xl font-bold text-foreground mb-2">{t('medicine.title')}</h1>
+              <p className="text-muted-foreground">{t('medicine.subtitle')}</p>
             </div>
             <Button 
               variant={showRealPharmacies ? "default" : "outline"} 
@@ -110,7 +112,7 @@ const Medicine = () => {
               className="flex items-center"
             >
               <MapPin className="mr-2 h-4 w-4" />
-              {showRealPharmacies ? 'Show Medicines' : 'Find Real Pharmacies'}
+              {showRealPharmacies ? t('medicine.showMedicines') : t('medicine.findRealPharmacies')}
             </Button>
           </div>
         </div>
@@ -120,7 +122,7 @@ const Medicine = () => {
           <Alert className="mb-6">
             <MapPinOff className="h-4 w-4" />
             <AlertDescription>
-              Enable location access to find nearby pharmacies with better prices and faster delivery.
+              {t('medicine.enableLocationDesc')}
               <Button 
                 variant="link" 
                 className="p-0 ml-2 h-auto"
@@ -130,10 +132,10 @@ const Medicine = () => {
                 {locationLoading ? (
                   <>
                     <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                    Getting location...
+                    {t('medicine.gettingLocation')}
                   </>
                 ) : (
-                  'Enable Location'
+                  t('medicine.enableLocation')
                 )}
               </Button>
             </AlertDescription>
@@ -153,7 +155,7 @@ const Medicine = () => {
           <Alert className="mb-6">
             <MapPin className="h-4 w-4" />
             <AlertDescription>
-              Showing results near: <strong>{location.formattedAddress}</strong>
+              {t('medicine.showingResultsNear')} <strong>{location.formattedAddress}</strong>
             </AlertDescription>
           </Alert>
         )}
@@ -164,7 +166,7 @@ const Medicine = () => {
           <div className="md:col-span-6 relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search medicines, brands, or conditions..."
+              placeholder={t('medicine.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -174,7 +176,7 @@ const Medicine = () => {
           <div className="md:col-span-2">
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger>
-                <SelectValue placeholder="Category" />
+                <SelectValue placeholder={t('medicine.category')} />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((category) => (
@@ -189,14 +191,14 @@ const Medicine = () => {
           <div className="md:col-span-2">
             <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Sort by" />
+                <SelectValue placeholder={t('medicine.sortBy')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="distance">Nearest First</SelectItem>
-                <SelectItem value="price-low">Price: Low to High</SelectItem>
-                <SelectItem value="price-high">Price: High to Low</SelectItem>
-                <SelectItem value="rating">Highest Rated</SelectItem>
-                <SelectItem value="delivery">Fastest Delivery</SelectItem>
+                <SelectItem value="distance">{t('medicine.nearestFirst')}</SelectItem>
+                <SelectItem value="price-low">{t('medicine.priceLowHigh')}</SelectItem>
+                <SelectItem value="price-high">{t('medicine.priceHighLow')}</SelectItem>
+                <SelectItem value="rating">{t('medicine.highestRated')}</SelectItem>
+                <SelectItem value="delivery">{t('medicine.fastestDelivery')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -204,7 +206,7 @@ const Medicine = () => {
           <div className="md:col-span-2">
             <Button className="w-full">
               <Filter className="mr-2 h-4 w-4" />
-              Filters
+              {t('medicine.filters')}
             </Button>
           </div>
         </div>
@@ -214,7 +216,7 @@ const Medicine = () => {
         {isLoading && (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin mr-2" />
-            <span>{showRealPharmacies ? 'Finding real pharmacies near you...' : 'Finding medicines near you...'}</span>
+            <span>{showRealPharmacies ? t('medicine.gettingLocation') : t('common.loading')}</span>
           </div>
         )}
 
@@ -223,14 +225,14 @@ const Medicine = () => {
           <div className="text-center py-12">
             <MapPinOff className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">
-              {showRealPharmacies ? 'No pharmacies found nearby' : 'No medicines found nearby'}
+              {showRealPharmacies ? t('medicine.noPharmaciesFound') : t('medicine.noMedicinesFound')}
             </h3>
             <p className="text-muted-foreground mb-4">
               {showRealPharmacies 
-                ? 'No pharmacies found within 5km of your location. Try refreshing or checking your location.'
+                ? t('medicine.noPharmaciesDesc')
                 : searchTerm 
-                  ? `No results for "${searchTerm}" in your area. Try a different search term.`
-                  : 'No pharmacies found within 10km of your location.'
+                  ? t('medicine.noMedicinesDesc')
+                  : t('medicine.noPharmaciesDesc')
               }
             </p>
             <Button variant="outline" onClick={() => {
@@ -243,7 +245,7 @@ const Medicine = () => {
                 setSelectedCategory('all');
               }
             }}>
-              {showRealPharmacies ? 'Search Wider Area' : 'Clear Filters'}
+              {showRealPharmacies ? t('medicine.searchWiderArea') : t('medicine.clearFilters')}
             </Button>
           </div>
         )}
@@ -276,7 +278,7 @@ const Medicine = () => {
                     </div>
                   </div>
                   <Badge variant="secondary" className="w-fit text-xs">
-                    Real Pharmacy
+                    {t('medicine.realPharmacy')}
                   </Badge>
                 </CardHeader>
                 
@@ -294,7 +296,7 @@ const Medicine = () => {
                     {pharmacy.distance && (
                       <div className="flex items-center text-sm text-muted-foreground">
                         <Navigation className="h-4 w-4 mr-1" />
-                        {formatDistance(pharmacy.distance)} away
+                        {formatDistance(pharmacy.distance)} {t('medicine.away')}
                       </div>
                     )}
 
@@ -314,7 +316,7 @@ const Medicine = () => {
 
                   <Button className="w-full">
                     <Navigation className="mr-2 h-4 w-4" />
-                    Get Directions
+                    {t('medicine.getDirections')}
                   </Button>
                 </CardContent>
               </Card>
@@ -364,7 +366,7 @@ const Medicine = () => {
                     
                     <div className="flex items-center text-sm text-muted-foreground">
                       <Truck className="h-4 w-4 mr-1" />
-                      Delivery in {medicine.pharmacy_delivery_time}
+                      {t('medicine.deliveryIn')} {medicine.pharmacy_delivery_time}
                     </div>
                   </div>
 
@@ -384,7 +386,7 @@ const Medicine = () => {
                       variant={medicine.is_available ? "success" : "destructive"}
                       className="text-xs"
                     >
-                      {medicine.is_available ? 'In Stock' : 'Out of Stock'}
+                      {medicine.is_available ? t('medicine.inStock') : t('medicine.outOfStock')}
                     </Badge>
                   </div>
 
@@ -393,7 +395,7 @@ const Medicine = () => {
                     disabled={!medicine.is_available}
                     onClick={() => addToCart(medicine.id)}
                   >
-                    {medicine.is_available ? 'Add to Cart' : 'Notify When Available'}
+                    {medicine.is_available ? t('medicine.addToCart') : t('medicine.notifyWhenAvailable')}
                   </Button>
                 </CardContent>
               </Card>
@@ -421,7 +423,7 @@ const Medicine = () => {
         <div className="fixed bottom-6 right-6 z-50">
           <Button size="lg" className="rounded-full shadow-lg relative">
             <ShoppingCart className="mr-2 h-5 w-5" />
-            Cart
+            {t('medicine.cart')}
             {cartItems > 0 && (
               <Badge variant="destructive" className="absolute -top-2 -right-2 h-6 w-6 flex items-center justify-center p-0">
                 {cartItems}
@@ -434,23 +436,23 @@ const Medicine = () => {
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="text-center p-6">
             <Clock className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Quick Refill</h3>
-            <p className="text-muted-foreground mb-4">Reorder your previous prescriptions with one click</p>
-            <Button variant="outline">View History</Button>
+            <h3 className="text-lg font-semibold mb-2">{t('medicine.quickRefill')}</h3>
+            <p className="text-muted-foreground mb-4">{t('medicine.quickRefillDesc')}</p>
+            <Button variant="outline">{t('medicine.viewHistory')}</Button>
           </Card>
 
           <Card className="text-center p-6">
             <Search className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Upload Prescription</h3>
-            <p className="text-muted-foreground mb-4">Upload your prescription and we'll find the medicines</p>
-            <Button variant="outline">Upload Now</Button>
+            <h3 className="text-lg font-semibold mb-2">{t('medicine.uploadPrescription')}</h3>
+            <p className="text-muted-foreground mb-4">{t('medicine.uploadPrescriptionDesc')}</p>
+            <Button variant="outline">{t('medicine.uploadNow')}</Button>
           </Card>
 
           <Card className="text-center p-6">
             <Truck className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Track Orders</h3>
-            <p className="text-muted-foreground mb-4">Track your medicine deliveries in real-time</p>
-            <Button variant="outline">Track Order</Button>
+            <h3 className="text-lg font-semibold mb-2">{t('medicine.trackOrders')}</h3>
+            <p className="text-muted-foreground mb-4">{t('medicine.trackOrdersDesc')}</p>
+            <Button variant="outline">{t('medicine.trackOrder')}</Button>
           </Card>
         </div>
       </div>
