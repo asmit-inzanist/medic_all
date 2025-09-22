@@ -155,8 +155,8 @@
     }
   },
   "medicine": {
-    "title": "Medicine Marketplace",
-    "subtitle": "Find and order medications from verified pharmacies near you",
+    "title": "Find Nearby Pharmacies",
+    "subtitle": "Discover real pharmacies near you with directions and contact information",
     "searchPlaceholder": "Search medicines, brands, or conditions...",
     "category": "Category",
     "sortBy": "Sort by",
@@ -180,6 +180,7 @@
     "clearFilters": "Clear Filters",
     "realPharmacy": "Real Pharmacy",
     "getDirections": "Get Directions",
+    "callPharmacy": "Call Pharmacy",
     "away": "away",
     "deliveryIn": "Delivery in",
     "inStock": "In Stock",
@@ -196,7 +197,7 @@
     "trackOrders": "Track Orders",
     "trackOrdersDesc": "Track your medicine deliveries in real-time",
     "trackOrder": "Track Order",
-    "locationRequired": "Location access required to find nearby hospitals",
+    "locationRequired": "Location access required to find nearby pharmacies",
     "findingLocation": "Finding your location...",
     "findingHospitals": "Finding nearby hospitals...",
     "noHospitalsFound": "No hospitals found nearby",
