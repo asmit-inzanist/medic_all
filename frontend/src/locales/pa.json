@@ -1,6 +1,6 @@
 {
   "common": {
-    "brand": "ਮੈਡਿਕ-AL",
+    "brand": "ਜਨੈਕਿਆ",
     "emergency": "ਐਮਰਜੈਂਸੀ",
     "notifications": "ਨੋਟੀਫਿਕੇਸ਼ਨ",
     "signIn": "ਸਾਇਨ ਇਨ",
@@ -48,7 +48,7 @@
     "medicineCatalogDesc": "ਵਿਸਤਾਰ ਨਾਲ ਜਾਣਕਾਰੀ ਦੇ ਨਾਲ ਦਵਾਈਆਂ ਬ੍ਰਾਊਜ਼, ਖੋਜ ਅਤੇ ਆਰਡਰ ਕਰੋ।",
     "aiHealthTitle": "AI ਸਿਹਤ ਸਹਾਇਕ",
     "aiHealthDesc": "ਅਦਵਾਈਤਤ AI ਤਕਨੀਕ ਨਾਲ ਸੰਚਾਲਿਤ ਤੁਰੰਤ ਸਿਹਤ ਮਾਰਗਦਰਸ਼ਨ ਪ੍ਰਾਪਤ ਕਰੋ।",
-    "featuresTitle": "ਮੈਡਿਕ-AL ਕਿਉਂ ਚੁਣੋ?",
+    "featuresTitle": "ਜਨੈਕਿਆ ਕਿਉਂ ਚੁਣੋ?",
     "feature24x7": "24/7 ਉਪਲਬਧਤਾ",
     "feature24x7Desc": "ਸਿਹਤ ਸੇਵਾਵਾਂ ਅਤੇ ਐਮਰਜੈਂਸੀ ਸਹਾਇਤਾ ਲਈ ਦਿਨ ਰਾਤ ਪਹੁੰਚ।",
     "featureExpertCare": "ਮਾਹਿਰ ਦੇਖਭਾਲ",

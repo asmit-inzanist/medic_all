@@ -293,7 +293,7 @@ const Home = () => {
           </div>
           
           <div className="text-sm text-muted-foreground">
-            © 2024 Medic-AL. All rights reserved.
+            © 2024 Janaikya. All rights reserved.
           </div>
         </div>
       </footer>

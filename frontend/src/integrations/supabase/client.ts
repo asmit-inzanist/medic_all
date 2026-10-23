@@ -23,7 +23,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   },
   global: {
     headers: {
-      'X-Client-Info': 'medic-all-app'
+      'X-Client-Info': 'janaikya-app'
     }
   }
 });

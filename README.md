@@ -1,4 +1,4 @@
-# Medic-AL - Multilingual Healthcare Platform
+# Janaikya - Multilingual Healthcare Platform
 
 A comprehensive healthcare platform supporting 8 Indian languages with AI-powered medical assistance, GPS location services, and complete medical ecosystem integration.
 

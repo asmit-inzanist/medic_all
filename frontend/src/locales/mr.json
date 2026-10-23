@@ -1,6 +1,6 @@
 {
   "common": {
-    "brand": "मेडिक-AL",
+    "brand": "जनैक्य",
     "emergency": "आपत्कालीन",
     "notifications": "सूचना",
     "signIn": "साइन इन",
@@ -48,7 +48,7 @@
     "medicineCatalogDesc": "तपशीलवार माहितीसह औषधे ब्राउझ, शोध आणि ऑर्डर करा.",
     "aiHealthTitle": "AI आरोग्य सहाय्यक",
     "aiHealthDesc": "प्रगत AI तंत्रज्ञानाने संचालित तत्काळ आरोग्य मार्गदर्शन मिळवा.",
-    "featuresTitle": "मेडिक-AL का निवडावे?",
+    "featuresTitle": "जनैक्य का निवडावे?",
     "feature24x7": "24/7 उपलब्धता",
     "feature24x7Desc": "आरोग्य सेवा आणि आपत्कालीन सहाय्यासाठी 24 तास प्रवेश.",
     "featureExpertCare": "तज्ञांची काळजी",

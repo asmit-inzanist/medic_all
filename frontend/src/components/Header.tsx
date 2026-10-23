@@ -79,7 +79,7 @@ const Header: React.FC = () => {
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center space-x-2">
             <div className="flex items-center justify-center w-8 h-8 bg-blue-600 rounded-lg">
-              <span className="text-white font-bold text-sm">M</span>
+              <span className="text-white font-bold text-sm">J</span>
             </div>
             <span className="font-bold text-xl text-gray-900">{t('common.brand')}</span>
           </Link>

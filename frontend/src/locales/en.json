@@ -1,6 +1,6 @@
 {
   "common": {
-    "brand": "Medic-AL",
+    "brand": "Janaikya",
     "emergency": "Emergency",
     "notifications": "Notifications",
     "signIn": "Sign In",
@@ -48,7 +48,7 @@
     "medicineCatalogDesc": "Browse, search, and order medicines with detailed information.",
     "aiHealthTitle": "AI Health Assistant",
     "aiHealthDesc": "Get instant health guidance powered by advanced AI technology.",
-    "featuresTitle": "Why Choose Medic-AL?",
+    "featuresTitle": "Why Choose Janaikya?",
     "feature24x7": "24/7 Availability",
     "feature24x7Desc": "Round-the-clock access to healthcare services and emergency support.",
     "featureExpertCare": "Expert Care",
