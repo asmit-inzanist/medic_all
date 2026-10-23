@@ -22,13 +22,18 @@ A comprehensive healthcare platform supporting 8 Indian languages with AI-powere
 - **GPS Location Services** - Real-time location detection
 - **Multilingual Interface** - Complete healthcare accessibility in Indian languages
 
-## 🛠️ Technologies
+## 🛠️ Project Structure
 
-- **Frontend**: React + TypeScript + Vite
-- **UI**: shadcn/ui + Tailwind CSS  
-- **Backend**: Supabase
-- **AI**: Google Gemini
-- **Internationalization**: react-i18next
+```text
+medic_all/
+├── frontend/             # React + Vite + Tailwind + TypeScript
+│   ├── src/              # Application source code
+│   ├── public/           # Static assets and translations
+│   └── package.json      # Frontend dependencies & scripts
+├── backend/              # Supabase database & serverless backend
+│   └── supabase/         # Migrations, Edge Functions, bootstrap.sql
+└── package.json          # Root runner scripts (npm run dev / npm run build)
+```
 
 ## 📋 Setup Instructions
 
@@ -40,30 +45,21 @@ cd medic_all
 
 ### 2. Install Dependencies
 ```bash
-npm install
+npm run install:all
+# Or navigate to frontend:
+# cd frontend && npm install
 ```
 
 ### 3. Environment Configuration
 ```bash
 # Copy the example environment file
 cp .env.example .env
+cp .env.example frontend/.env
 
-# Edit .env with your actual values
-VITE_SUPABASE_PROJECT_ID="your_project_id"
-VITE_SUPABASE_PUBLISHABLE_KEY="your_publishable_key"
-VITE_SUPABASE_URL="https://your_project_id.supabase.co"
+# Edit .env with your actual Supabase, ZegoCloud & Gemini values
 ```
 
-### 4. Supabase Setup
-```bash
-# Copy the example config
-cp supabase/config.example.toml supabase/config.toml
-
-# Edit config.toml with your project ID
-project_id = "your_supabase_project_id"
-```
-
-### 5. Start Development Server
+### 4. Start Development Server
 ```bash
 npm run dev
 ```

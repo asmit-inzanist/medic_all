@@ -45,7 +45,7 @@ const AuthRecovery: React.FC = () => {
       
       // Clear potentially corrupted data
       localStorage.removeItem('supabase.auth.token');
-      localStorage.removeItem('sb-ggwouvpwnwhdcsjyaiaw-auth-token');
+      localStorage.removeItem(`sb-${import.meta.env.VITE_SUPABASE_PROJECT_ID}-auth-token`);
       sessionStorage.clear();
       
       // Try to refresh the session

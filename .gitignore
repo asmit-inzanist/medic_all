@@ -18,10 +18,14 @@ dist-ssr
 
 # Supabase
 .supabase/
-supabase/.env
-supabase/.env.local
+**/.supabase/
+supabase/.env*
+**/supabase/.env*
+backend/supabase/config.toml
 supabase/config.toml
 !supabase/config.example.toml
+**/create_doctors_table.sql
+
 
 # Editor directories and files
 .vscode/*

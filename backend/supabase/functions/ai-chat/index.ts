@@ -139,7 +139,7 @@ Provide a helpful, direct response about their health concern. Be empathetic but
     console.log('📡 Payload prepared, making request to Gemini...')
     
     // Call Gemini API with correct format
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`
     console.log('🌐 Gemini URL (without key):', geminiUrl.replace(/key=.*/, 'key=***'))
     
     const response = await fetch(geminiUrl, {

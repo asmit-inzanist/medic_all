@@ -33,7 +33,7 @@ export const useAuth = () => {
           if (error.message.includes('invalid') || error.message.includes('malformed')) {
             console.log('🧹 Clearing corrupted session...');
             localStorage.removeItem('supabase.auth.token');
-            localStorage.removeItem('sb-ggwouvpwnwhdcsjyaiaw-auth-token');
+            localStorage.removeItem(`sb-${import.meta.env.VITE_SUPABASE_PROJECT_ID}-auth-token`);
             
             if (retryCount < maxRetries) {
               retryCount++;
@@ -70,7 +70,7 @@ export const useAuth = () => {
           console.log('👋 User signed out');
           // Clear any lingering storage
           localStorage.removeItem('supabase.auth.token');
-          localStorage.removeItem('sb-ggwouvpwnwhdcsjyaiaw-auth-token');
+          localStorage.removeItem(`sb-${import.meta.env.VITE_SUPABASE_PROJECT_ID}-auth-token`);
         }
         
         if (event === 'TOKEN_REFRESHED') {

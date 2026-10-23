@@ -22,8 +22,8 @@ const VideoCall: React.FC<VideoCallProps> = ({ roomID, isDoctor = false, onLeave
     const initializeCall = async () => {
       if (!user || !containerRef.current) return;
 
-      const appID = 235526139;
-      const serverSecret = "fe2323eaf8771467e39ed8c14fb3e692";
+      const appID = Number(import.meta.env.VITE_ZEGO_APP_ID);
+      const serverSecret = import.meta.env.VITE_ZEGO_SERVER_SECRET;
       
       // Generate Kit Token using the imported package
       const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(

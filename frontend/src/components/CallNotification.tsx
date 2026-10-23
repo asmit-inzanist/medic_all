@@ -38,16 +38,14 @@ const CallNotification: React.FC<CallNotificationProps> = ({ onJoinCall, isInCal
       return;
     }
 
+    const testDoctorEmail = import.meta.env.VITE_TEST_DOCTOR_EMAIL;
     console.log('🔔 Setting up call notifications for user:', user.email);
     console.log('🔔 User ID for filtering:', user.id);
-    console.log('🔔 Is this Bineet?', user.email === 'bineetgdsc@gmail.com');
-    console.log('🔔 Expected Bineet ID:', 'a10571ca-baca-41c9-aa08-e955342ae915');
 
-    // Check if we're actually the Bineet user
-    if (user.email === 'bineetgdsc@gmail.com') {
-      console.log('🎯 THIS IS BINEET! Setting up notifications...');
+    if (testDoctorEmail && user.email === testDoctorEmail) {
+      console.log('🎯 Doctor account connected! Setting up notifications...');
     } else {
-      console.log('👤 This is not Bineet, this is:', user.email);
+      console.log('👤 Connected user is:', user.email);
     }
 
     // Test Supabase connection

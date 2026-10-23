@@ -91,11 +91,15 @@ const Doctors = () => {
     };
   }, [user, currentCall, toast]);
 
-  // Define Dr. Bineet Kumar (for testing) - always shows first
-  const drBineet = {
+  const testDoctorEmail = import.meta.env.VITE_TEST_DOCTOR_EMAIL || 'doctor@example.com';
+  const testDoctorName = import.meta.env.VITE_TEST_DOCTOR_NAME || 'Dr. Sun Goswami';
+  const testDoctorId = import.meta.env.VITE_TEST_DOCTOR_ID || '';
+
+  // Define test doctor card - configurable via .env
+  const drSun = {
     id: 'hardcoded-doctor',
-    name: 'Dr. Bineet Kumar',
-    email: 'bineetgdsc@gmail.com',
+    name: testDoctorName,
+    email: testDoctorEmail,
     specialty: 'General Physician',
     rating: 4.9,
     reviewCount: 324,
@@ -165,16 +169,15 @@ const Doctors = () => {
         .eq('email', doctor.email)
         .single();
         
-      // If profile doesn't exist, use hardcoded user ID for bineetgdsc@gmail.com
+      // If profile doesn't exist, use configured user ID for test doctor
       if (profileError || !profileData) {
-        // Hardcode bineet's profile data since RLS is blocking creation
-        if (doctor.email === 'bineetgdsc@gmail.com') {
+        if (testDoctorEmail && doctor.email === testDoctorEmail) {
           profileData = {
-            id: 'a10571ca-baca-41c9-aa08-e955342ae915',
-            user_id: 'a10571ca-baca-41c9-aa08-e955342ae915',
-            email: 'bineetgdsc@gmail.com',
-            first_name: 'bineet',
-            last_name: 'bairagi'
+            id: testDoctorId,
+            user_id: testDoctorId,
+            email: testDoctorEmail,
+            first_name: testDoctorName,
+            last_name: ''
           } as any;
         } else {
           // For any other doctor, use current user ID as fallback
@@ -194,9 +197,8 @@ const Doctors = () => {
         }
       }
 
-      // ALWAYS use hardcoded bineet user ID when calling bineetgdsc@gmail.com
-      const receiverId = doctor.email === 'bineetgdsc@gmail.com' 
-        ? 'a10571ca-baca-41c9-aa08-e955342ae915'  // Bineet's hardcoded user ID
+      const receiverId = (testDoctorEmail && doctor.email === testDoctorEmail && testDoctorId)
+        ? testDoctorId
         : profileData.user_id;
       
       console.log('Creating call record for:', doctor.email);
@@ -207,7 +209,7 @@ const Doctors = () => {
         .from('video_calls')
         .insert({
           caller_id: user.id,
-          receiver_id: receiverId,  // Use hardcoded bineet ID for bineetgdsc@gmail.com
+          receiver_id: receiverId,
           caller_email: user.email || '',
           receiver_email: doctor.email,
           caller_name: user.user_metadata?.name || user.email || '',
@@ -230,12 +232,10 @@ const Doctors = () => {
         duration: 5000,
       });
 
-      // IMPORTANT: Caller (asmit) joins the video call immediately
+      // Caller joins the video call immediately
       setInVideoCall(true);
       setCurrentCall({ roomId, doctorName: doctor.name });
       
-      // The receiver (bineet) will get a notification via CallNotification component
-
     } catch (error) {
       console.error('Error initiating call:', error);
       toast({
@@ -247,7 +247,7 @@ const Doctors = () => {
   };
 
   const handleJoinCall = (roomId: string) => {
-    setCurrentCall({ roomId, doctorName: 'Dr. Bineet Kumar' });
+    setCurrentCall({ roomId, doctorName: testDoctorName });
     setInVideoCall(true);
   };
 
@@ -369,17 +369,17 @@ const Doctors = () => {
 
         {/* Doctor Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
-          {/* Dr. Bineet Kumar - Always first (for testing) */}
-          <Card key={drBineet.id} className="p-6 hover:shadow-lg transition-shadow">
+          {/* Dr. Sun Goswami - Always first (for testing) */}
+          <Card key={drSun.id} className="p-6 hover:shadow-lg transition-shadow">
             <div className="flex items-start gap-4">
               <div className="relative">
                 <Avatar className="w-20 h-20">
-                  <AvatarImage src={drBineet.image} alt={drBineet.name} />
+                  <AvatarImage src={drSun.image} alt={drSun.name} />
                   <AvatarFallback className="text-lg font-semibold bg-blue-100 text-blue-600">
-                    {drBineet.name.split(' ').map(n => n[0]).join('')}
+                    {drSun.name.split(' ').map(n => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
-                {drBineet.isOnline && (
+                {drSun.isOnline && (
                   <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-3 border-white flex items-center justify-center">
                     <div className="w-3 h-3 bg-white rounded-full"></div>
                   </div>
@@ -388,55 +388,55 @@ const Doctors = () => {
               
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-xl font-semibold text-foreground">{drBineet.name}</h3>
-                  {drBineet.isVerified && (
+                  <h3 className="text-xl font-semibold text-foreground">{drSun.name}</h3>
+                  {drSun.isVerified && (
                     <div className="flex items-center gap-1">
                       <Shield className="w-4 h-4 text-blue-600" />
                       <span className="text-sm text-blue-600 font-medium">{t('doctors.verified')}</span>
                     </div>
                   )}
-                  {drBineet.isOnline && (
+                  {drSun.isOnline && (
                     <Badge className="bg-green-500 hover:bg-green-600 text-white">
                       {t('doctors.online')}
                     </Badge>
                   )}
                 </div>
                 
-                <p className="text-blue-600 font-medium mb-2">{drBineet.specialty}</p>
+                <p className="text-blue-600 font-medium mb-2">{drSun.specialty}</p>
                 
                 <div className="flex items-center gap-1 mb-2">
                   <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  <span className="font-semibold">{drBineet.rating}</span>
-                  <span className="text-muted-foreground">({drBineet.reviewCount} reviews)</span>
+                  <span className="font-semibold">{drSun.rating}</span>
+                  <span className="text-muted-foreground">({drSun.reviewCount} reviews)</span>
                 </div>
                 
-                <p className="text-muted-foreground mb-2">{drBineet.location}</p>
-                <p className="text-muted-foreground mb-4">{drBineet.experience}</p>
+                <p className="text-muted-foreground mb-2">{drSun.location}</p>
+                <p className="text-muted-foreground mb-4">{drSun.experience}</p>
                 
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div className="text-center">
-                    <div className="text-xl font-bold text-blue-600">${drBineet.fee}</div>
+                    <div className="text-xl font-bold text-blue-600">${drSun.fee}</div>
                     <div className="text-xs text-muted-foreground">{t('doctors.consultationFee')}</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl font-bold text-blue-600">{drBineet.responseTime}</div>
+                    <div className="text-xl font-bold text-blue-600">{drSun.responseTime}</div>
                     <div className="text-xs text-muted-foreground">{t('doctors.responseTime')}</div>
                   </div>
                 </div>
                 
                 <div className="mb-4">
                   <span className="text-sm text-muted-foreground">{t('doctors.languages')}: </span>
-                  <span className="text-sm">{drBineet.languages.join(', ')}</span>
+                  <span className="text-sm">{drSun.languages.join(', ')}</span>
                 </div>
                 
                 <div className="flex items-center gap-2 mb-4">
                   <Clock className="w-4 h-4 text-green-600" />
-                  <span className="text-sm text-green-600 font-medium">{t('doctors.nextAvailable')}: {drBineet.availability}</span>
+                  <span className="text-sm text-green-600 font-medium">{t('doctors.nextAvailable')}: {drSun.availability}</span>
                 </div>
                 
                 <div className="grid grid-cols-3 gap-2">
                   <Button 
-                    onClick={() => handleVideoCall(drBineet)} 
+                    onClick={() => handleVideoCall(drSun)} 
                     className="bg-blue-600 hover:bg-blue-700"
                     disabled={callInitiated}
                   >
@@ -445,7 +445,7 @@ const Doctors = () => {
                   </Button>
                   <Button 
                     variant="outline"
-                    onClick={() => handleContactDoctor(drBineet)}
+                    onClick={() => handleContactDoctor(drSun)}
                   >
                     <Phone className="mr-1 h-4 w-4" />
                     {t('doctors.contact')}

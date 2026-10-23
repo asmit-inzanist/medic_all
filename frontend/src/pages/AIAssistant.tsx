@@ -250,7 +250,100 @@ const AIAssistant = () => {
         console.log('👤 Frontend: User profile retrieved:', !!userProfile);
       }
 
-      console.log('📡 Frontend: Calling Supabase function...');
+      // 1. Direct call to Gemini API (FASTEST)
+      const directApiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (directApiKey) {
+        console.log('⚡ Frontend: Calling Gemini API directly for instant response...');
+        const userMessages = messages.filter(m => m.type === 'user');
+        const isFirstUserMessage = userMessages.length === 0;
+
+        const contextInfo = messages.length > 0 
+          ? `\n\nRecent conversation history:\n` + messages.slice(-4).map(m => `${m.type === 'user' ? 'Patient' : 'Assistant'}: ${m.content}`).join('\n')
+          : '';
+
+        const greetingInstruction = isFirstUserMessage 
+          ? 'This is the first message - you may greet the user warmly by name if available.'
+          : 'This is a continuing message - DO NOT repeat greetings or names, respond directly to their concern.';
+
+        const systemPrompt = `You are a helpful, compassionate AI Health Assistant providing medical guidance and information. You are NOT a replacement for professional medical care.
+
+CONVERSATION GUIDELINES:
+- ${greetingInstruction}
+- Keep responses natural, conversational, and direct
+- Use simple bullet points (-) instead of asterisks (*) when listing items
+- Avoid using asterisks (*) for emphasis or bold formatting
+- For urgent, severe, or worsening symptoms, advise seeking prompt medical care
+- When analyzing attached medical documents or images, extract medication names, dosages, and instructions clearly.
+
+Patient Profile: ${userProfile ? JSON.stringify(userProfile) : 'None provided'}${contextInfo}
+Current Patient Query: ${userMessage || 'Please analyze the attached medical documents.'}`;
+
+        const contentParts: any[] = [{ text: systemPrompt }];
+
+        if (attachments && attachments.length > 0) {
+          for (const att of attachments) {
+            if (att.base64Data && att.mimeType?.startsWith('image/')) {
+              contentParts.push({
+                inline_data: {
+                  mime_type: att.mimeType,
+                  data: att.base64Data
+                }
+              });
+            }
+          }
+        }
+
+        // Try models in order of speed and available quota
+        const candidateModels = ['gemini-flash-lite-latest', 'gemini-flash-latest'];
+        let quotaExceeded = false;
+
+        for (const model of candidateModels) {
+          try {
+            console.log(`📡 Trying model ${model}...`);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${directApiKey}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              signal: controller.signal,
+              body: JSON.stringify({
+                contents: [{ parts: contentParts }],
+                generationConfig: {
+                  temperature: 0.7,
+                  maxOutputTokens: 2048,
+                }
+              })
+            });
+
+            clearTimeout(timeoutId);
+
+            if (res.ok) {
+              const geminiData = await res.json();
+              const reply = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (reply) {
+                console.log(`✅ Frontend: Direct Gemini call successful with ${model}!`);
+                return reply;
+              }
+            } else {
+              const errStatus = res.status;
+              const errText = await res.text();
+              console.warn(`⚠️ Model ${model} returned error ${errStatus}:`, errText);
+              if (errStatus === 429) {
+                quotaExceeded = true;
+                // Continue to try the next model
+                continue;
+              }
+            }
+          } catch (modelErr) {
+            console.warn(`⚠️ Attempt with ${model} failed or timed out:`, modelErr);
+          }
+        }
+
+        if (quotaExceeded) {
+          return "⚠️ Your Gemini API key has reached its Google Free Tier daily request limit. Please wait for the daily quota reset or create a new free API key at ai.google.dev / Google AI Studio and update your .env file.";
+        }
+      }
       
       // Check if this is the first user message (after the initial bot greeting)
       const userMessages = messages.filter(m => m.type === 'user');
