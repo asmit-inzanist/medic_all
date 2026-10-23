@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Bell, MapPin, LogOut, Settings, User as UserIcon } from 'lucide-react';
+import { User, MapPin, LogOut, Settings, User as UserIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
@@ -141,13 +141,6 @@ const Header: React.FC = () => {
             {t('common.emergency')}
           </Button>
 
-          {/* Notifications */}
-          <Button variant="ghost" size="sm" className="relative h-9 w-9 p-0">
-            <Bell className="h-4 w-4" />
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs">
-              3
-            </Badge>
-          </Button>
 
           {/* User Menu */}
           {user ? (
