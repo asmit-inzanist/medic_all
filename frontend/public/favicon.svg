@@ -1,21 +1,23 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   <defs>
-    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#3B82F6"/>
       <stop offset="100%" stop-color="#1D4ED8"/>
     </linearGradient>
-    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#0F172A" flood-opacity="0.25"/>
-    </filter>
   </defs>
   
-  <!-- Rounded Brand Base -->
-  <rect width="64" height="64" rx="14" fill="url(#blueGrad)"/>
+  <!-- Smooth Squircle Container with safe padding -->
+  <rect width="64" height="64" rx="16" fill="url(#brandGradient)"/>
   
-  <!-- Medical Plus / Cross (Top Right Accent) -->
-  <rect x="44" y="11" width="12" height="4" rx="2" fill="#38BDF8"/>
-  <rect x="48" y="7" width="4" height="12" rx="2" fill="#38BDF8"/>
+  <!-- Healthcare Medical Plus Accent (Comfortable margin from border: 14px padding) -->
+  <rect x="40" y="17.25" width="10" height="3.5" rx="1.75" fill="#38BDF8"/>
+  <rect x="43.25" y="14" width="3.5" height="10" rx="1.75" fill="#38BDF8"/>
   
-  <!-- Bold White 'J' -->
-  <text x="29" y="47" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-weight="800" font-size="40" fill="#FFFFFF" text-anchor="middle" filter="url(#softShadow)">J</text>
+  <!-- Seamless Modern 'J' Vector -->
+  <path d="M 33 16 V 37.5 C 33 44 28.5 48.5 22 48.5 C 16.5 48.5 13 45 13 40" 
+        fill="none" 
+        stroke="#FFFFFF" 
+        stroke-width="7" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
 </svg>
