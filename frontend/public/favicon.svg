@@ -1,18 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
     <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#2563EB"/>
+      <stop offset="0%" stop-color="#3B82F6"/>
       <stop offset="100%" stop-color="#1D4ED8"/>
     </linearGradient>
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#0F172A" flood-opacity="0.25"/>
+    </filter>
   </defs>
   
   <!-- Rounded Brand Base -->
   <rect width="64" height="64" rx="14" fill="url(#blueGrad)"/>
   
-  <!-- Medical Cross Accent (Top Right) -->
-  <rect x="47" y="10" width="10" height="4" rx="2" fill="#38BDF8"/>
-  <rect x="50" y="7" width="4" height="10" rx="2" fill="#38BDF8"/>
+  <!-- Medical Plus / Cross (Top Right Accent) -->
+  <rect x="44" y="11" width="12" height="4" rx="2" fill="#38BDF8"/>
+  <rect x="48" y="7" width="4" height="12" rx="2" fill="#38BDF8"/>
   
   <!-- Bold White 'J' -->
-  <text x="23" y="47" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-weight="800" font-size="40" fill="#FFFFFF">J</text>
+  <text x="29" y="47" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-weight="800" font-size="40" fill="#FFFFFF" text-anchor="middle" filter="url(#softShadow)">J</text>
 </svg>

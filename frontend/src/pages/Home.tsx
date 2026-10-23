@@ -273,7 +273,10 @@ const Home = () => {
       <footer className="bg-card border-t py-12 mt-16">
         <div className="container mx-auto px-4 text-center">
           <div className="mb-8">
-            <h3 className="text-2xl font-bold mb-4">{t('common.brand')}</h3>
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <img src="/favicon.svg" alt="Janaikya" className="w-8 h-8 rounded-lg shadow-sm" />
+              <h3 className="text-2xl font-bold">{t('common.brand')}</h3>
+            </div>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Making healthcare accessible, convenient, and efficient for everyone through innovative 
               technology and user-friendly design.

@@ -78,9 +78,7 @@ const Header: React.FC = () => {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center space-x-2">
-            <div className="flex items-center justify-center w-8 h-8 bg-blue-600 rounded-lg">
-              <span className="text-white font-bold text-sm">J</span>
-            </div>
+            <img src="/favicon.svg" alt="Janaikya" className="w-8 h-8 rounded-lg shadow-sm" />
             <span className="font-bold text-xl text-gray-900">{t('common.brand')}</span>
           </Link>
           
