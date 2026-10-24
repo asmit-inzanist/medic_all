@@ -24,17 +24,6 @@ const Home = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
 
-  const handleServiceClick = (href: string, serviceName: string) => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: `Please sign in to access ${serviceName}`,
-        variant: "destructive",
-      });
-      return;
-    }
-    // Navigate to service (handled by Link component)
-  };
 
   const handleExploreServices = () => {
     const servicesSection = document.getElementById('healthcare-services');
@@ -144,22 +133,23 @@ const Home = () => {
             {t('home.welcomeSubtitle')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {user ? (
-              <Button size="lg" className="bg-primary hover:bg-primary-hover" onClick={handleExploreServices}>
-                {t('home.exploreServices')}
-                <ArrowRight className="ml-2 h-5 w-5" />
+            <Button size="lg" className="bg-primary hover:bg-primary-hover" onClick={handleExploreServices}>
+              {t('home.exploreServices')}
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+            {!user ? (
+              <Button asChild size="lg" variant="outline">
+                <Link to="/auth">
+                  {t('common.signIn')} / Sign Up
+                </Link>
               </Button>
             ) : (
-              <Button asChild size="lg" className="bg-primary hover:bg-primary-hover">
-                <Link to="/auth">
-                  Get Started Today
-                  <ArrowRight className="ml-2 h-5 w-5" />
+              <Button asChild size="lg" variant="outline">
+                <Link to="/profile">
+                  {t('navigation.profile')}
                 </Link>
               </Button>
             )}
-            <Button size="lg" variant="outline">
-              Learn More
-            </Button>
           </div>
         </div>
       </section>
@@ -205,22 +195,12 @@ const Home = () => {
                   ))}
                 </div>
                 
-                {user ? (
-                  <Button asChild className="w-full group-hover:bg-primary-hover transition-colors">
-                    <Link to={service.href}>
-                      {service.buttonText}
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                ) : (
-                  <Button 
-                    className="w-full group-hover:bg-primary-hover transition-colors"
-                    onClick={() => handleServiceClick(service.href, service.title)}
-                  >
+                <Button asChild className="w-full group-hover:bg-primary-hover transition-colors">
+                  <Link to={service.href}>
                     {service.buttonText}
                     <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                )}
+                  </Link>
+                </Button>
               </CardContent>
             </Card>
           ))}

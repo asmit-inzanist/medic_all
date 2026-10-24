@@ -20,18 +20,21 @@ const VideoCall: React.FC<VideoCallProps> = ({ roomID, isDoctor = false, onLeave
 
   useEffect(() => {
     const initializeCall = async () => {
-      if (!user || !containerRef.current) return;
-
+      if (!containerRef.current) return;
       const appID = Number(import.meta.env.VITE_ZEGO_APP_ID);
       const serverSecret = import.meta.env.VITE_ZEGO_SERVER_SECRET;
+
+      const guestId = `guest_${Math.random().toString(36).substring(2, 9)}`;
+      const callerId = user?.id || guestId;
+      const callerName = user?.user_metadata?.full_name || user?.email || 'Guest Patient';
       
       // Generate Kit Token using the imported package
       const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
         appID,
         serverSecret,
         roomID,
-        user.id,
-        user.email || 'User'
+        callerId,
+        callerName
       );
 
       // Create instance object from Kit Token

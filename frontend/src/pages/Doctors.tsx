@@ -150,17 +150,18 @@ const Doctors = () => {
   ];
 
   const handleVideoCall = async (doctor: any) => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to make a video call",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       const roomId = `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+      if (!user) {
+        toast({
+          title: "Guest Consultation",
+          description: `Starting consultation room with ${doctor.name}...`,
+        });
+        setInVideoCall(true);
+        setCurrentCall({ roomId, doctorName: doctor.name });
+        return;
+      }
       
       // Find the receiver user by email in profiles table
       let { data: profileData, error: profileError } = await supabase

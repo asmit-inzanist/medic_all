@@ -68,46 +68,11 @@ const AppContent = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/auth" element={<Auth />} />
-        <Route 
-          path="/medicine" 
-          element={
-            <ProtectedRoute serviceName="Medicine Marketplace">
-              <Medicine />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/hospitals" 
-          element={
-            <ProtectedRoute serviceName="Hospital Booking">
-              <Hospitals />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/doctors" 
-          element={
-            <ProtectedRoute serviceName="Doctor Consultation">
-              <Doctors key={`doctors-${renderKey}`} />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/ai-assistant" 
-          element={
-            <ProtectedRoute serviceName="AI Health Assistant">
-              <AIAssistant />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/profile" 
-          element={
-            <ProtectedRoute serviceName="Profile">
-              <Profile />
-            </ProtectedRoute>
-          } 
-        />
+        <Route path="/medicine" element={<Medicine />} />
+        <Route path="/hospitals" element={<Hospitals />} />
+        <Route path="/doctors" element={<Doctors key={`doctors-${renderKey}`} />} />
+        <Route path="/ai-assistant" element={<AIAssistant />} />
+        <Route path="/profile" element={<Profile />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

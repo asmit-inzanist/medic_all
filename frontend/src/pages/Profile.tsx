@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { 
   User, 
@@ -134,9 +135,14 @@ const Profile = () => {
     }
   };
 
-  // Save profile to Supabase
+  // Save profile to Supabase (or locally if guest)
   const saveProfile = async () => {
-    if (!user) return;
+    localStorage.setItem('profileData', JSON.stringify(profileData));
+
+    if (!user) {
+      toast.success('Profile saved locally (sign in to sync across devices)');
+      return;
+    }
 
     try {
       const [firstName, ...lastNameParts] = profileData.name.split(' ');
@@ -183,6 +189,8 @@ const Profile = () => {
   useEffect(() => {
     if (user) {
       loadProfile();
+    } else {
+      setLoading(false);
     }
   }, [user]);
 
@@ -298,9 +306,9 @@ const Profile = () => {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsEditing(false);
-    // Here you would typically save to a backend
+    await saveProfile();
   };
 
   const handleExportMedicalRecords = async () => {
@@ -336,6 +344,18 @@ const Profile = () => {
           <h1 className="text-3xl font-bold text-foreground mb-2">{t('profile.title')}</h1>
           <p className="text-muted-foreground">{t('profile.subtitle')}</p>
         </div>
+
+        {!user && (
+          <div className="mb-6 p-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <p className="font-semibold text-sm">Guest Mode</p>
+              <p className="text-xs text-blue-700">Your profile details are stored locally in this browser. You can sign in or create an account anytime to sync across devices.</p>
+            </div>
+            <Button size="sm" asChild className="bg-blue-600 hover:bg-blue-700 text-white shrink-0">
+              <Link to="/auth">Sign In / Sign Up</Link>
+            </Button>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Profile Card */}
